@@ -66,7 +66,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         //传输率
         mPublisher.setVideoHDMode();
         //开启美颜（其他滤镜效果在MagicFilterType中查看）
-        mPublisher.switchCameraFilter(MagicFilterType.BEAUTY);
+        mPublisher.switchCameraFilter(MagicFilterType.NONE);
         //打开摄像头，开始预览（未推流）
         mPublisher.startCamera();
     }
