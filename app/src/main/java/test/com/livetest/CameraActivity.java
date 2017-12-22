@@ -6,6 +6,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -122,7 +123,72 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
                 break;
         }
     }
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings)
+        {
+            return true;
+        } else
+        {
+            switch (id)
+            {
+                case R.id.cool_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.COOL);
+                    break;
+                case R.id.beauty_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.BEAUTY);
+                    break;
+                case R.id.early_bird_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.EARLYBIRD);
+                    break;
+                case R.id.evergreen_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.EVERGREEN);
+                    break;
+                case R.id.n1977_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.N1977);
+                    break;
+                case R.id.nostalgia_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.NOSTALGIA);
+                    break;
+                case R.id.romance_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.ROMANCE);
+                    break;
+                case R.id.sunrise_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.SUNRISE);
+                    break;
+                case R.id.sunset_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.SUNSET);
+                    break;
+                case R.id.tender_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.TENDER);
+                    break;
+                case R.id.toast_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.TOASTER2);
+                    break;
+                case R.id.valencia_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.VALENCIA);
+                    break;
+                case R.id.walden_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.WALDEN);
+                    break;
+                case R.id.warm_filter:
+                    mPublisher.switchCameraFilter(MagicFilterType.WARM);
+                    break;
+                case R.id.original_filter:
+                default:
+                    mPublisher.switchCameraFilter(MagicFilterType.NONE);
+                    break;
+            }
+        }
+        setTitle(item.getTitle());
+        return super.onOptionsItemSelected(item);
+    }
     @Override
     protected void onResume()
     {
