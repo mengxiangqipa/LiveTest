@@ -12,46 +12,52 @@ import java.io.File;
 /**
  * Created by Leo Ma on 2016/7/25.
  */
-public class SrsPublisher {
-
+public class SrsPublisher
+{
     private static AudioRecord mic;
     private static AcousticEchoCanceler aec;
     private static AutomaticGainControl agc;
     private byte[] mPcmBuffer = new byte[4096];
     private Thread aworker;
-
     private SrsCameraView mCameraView;
-
     private boolean sendVideoOnly = false;
     private boolean sendAudioOnly = false;
     private int videoFrameCount;
     private long lastTimeMillis;
     private double mSamplingFps;
-
     private SrsFlvMuxer mFlvMuxer;
     private SrsMp4Muxer mMp4Muxer;
     private SrsEncoder mEncoder;
 
-    public SrsPublisher(SrsCameraView view) {
+    public SrsPublisher(SrsCameraView view)
+    {
         mCameraView = view;
-        mCameraView.setPreviewCallback(new SrsCameraView.PreviewCallback() {
-            @Override
-            public void onGetRgbaFrame(byte[] data, int width, int height) {
-                calcSamplingFps();
-                if (!sendAudioOnly) {
-                    mEncoder.onGetRgbaFrame(data, width, height);
+        if (null != mCameraView)
+            mCameraView.setPreviewCallback(new SrsCameraView.PreviewCallback()
+            {
+                @Override
+                public void onGetRgbaFrame(byte[] data, int width, int height)
+                {
+                    calcSamplingFps();
+                    if (!sendAudioOnly)
+                    {
+                        mEncoder.onGetRgbaFrame(data, width, height);
+                    }
                 }
-            }
-        });
+            });
     }
 
-    private void calcSamplingFps() {
+    private void calcSamplingFps()
+    {
         // Calculate sampling FPS
-        if (videoFrameCount == 0) {
+        if (videoFrameCount == 0)
+        {
             lastTimeMillis = System.nanoTime() / 1000000;
             videoFrameCount++;
-        } else {
-            if (++videoFrameCount >= SrsEncoder.VGOP) {
+        } else
+        {
+            if (++videoFrameCount >= SrsEncoder.VGOP)
+            {
                 long diffTimeMillis = System.nanoTime() / 1000000 - lastTimeMillis;
                 mSamplingFps = (double) videoFrameCount * 1000 / diffTimeMillis;
                 videoFrameCount = 0;
@@ -59,51 +65,69 @@ public class SrsPublisher {
         }
     }
 
-    public void startCamera() {
-        mCameraView.startCamera();
+    public void startCamera()
+    {
+        if (null != mCameraView)
+            mCameraView.startCamera();
     }
 
-    public void stopCamera() {
-        mCameraView.stopCamera();
+    public void stopCamera()
+    {
+        if (null != mCameraView)
+            mCameraView.stopCamera();
     }
 
-    public void startAudio() {
+    public void startAudio()
+    {
         mic = mEncoder.chooseAudioRecord();
-        if (mic == null) {
+        if (mic == null)
+        {
             return;
         }
 
-        if (AcousticEchoCanceler.isAvailable()) {
+        if (AcousticEchoCanceler.isAvailable())
+        {
             aec = AcousticEchoCanceler.create(mic.getAudioSessionId());
-            if (aec != null) {
+            if (aec != null)
+            {
                 aec.setEnabled(true);
             }
         }
 
-        if (AutomaticGainControl.isAvailable()) {
+        if (AutomaticGainControl.isAvailable())
+        {
             agc = AutomaticGainControl.create(mic.getAudioSessionId());
-            if (agc != null) {
+            if (agc != null)
+            {
                 agc.setEnabled(true);
             }
         }
 
-        aworker = new Thread(new Runnable() {
+        aworker = new Thread(new Runnable()
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
                 mic.startRecording();
-                while (!Thread.interrupted()) {
-                    if (sendVideoOnly) {
+                while (!Thread.interrupted())
+                {
+                    if (sendVideoOnly)
+                    {
                         mEncoder.onGetPcmFrame(mPcmBuffer, mPcmBuffer.length);
-                        try {
+                        try
+                        {
                             // This is trivial...
                             Thread.sleep(20);
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException e)
+                        {
                             break;
                         }
-                    } else {
+                    } else
+                    {
                         int size = mic.read(mPcmBuffer, 0, mPcmBuffer.length);
-                        if (size > 0) {
+                        if (size > 0)
+                        {
                             mEncoder.onGetPcmFrame(mPcmBuffer, size);
                         }
                     }
@@ -113,198 +137,264 @@ public class SrsPublisher {
         aworker.start();
     }
 
-    public void stopAudio() {
-        if (aworker != null) {
+    public void stopAudio()
+    {
+        if (aworker != null)
+        {
             aworker.interrupt();
-            try {
+            try
+            {
                 aworker.join();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException e)
+            {
                 aworker.interrupt();
             }
             aworker = null;
         }
 
-        if (mic != null) {
+        if (mic != null)
+        {
             mic.setRecordPositionUpdateListener(null);
             mic.stop();
             mic.release();
             mic = null;
         }
 
-        if (aec != null) {
+        if (aec != null)
+        {
             aec.setEnabled(false);
             aec.release();
             aec = null;
         }
 
-        if (agc != null) {
+        if (agc != null)
+        {
             agc.setEnabled(false);
             agc.release();
             agc = null;
         }
     }
 
-    public void startEncode() {
-        if (!mEncoder.start()) {
+    public void startEncode()
+    {
+        if (!mEncoder.start())
+        {
             return;
         }
-
-        mCameraView.enableEncoding();
+        if (null != mCameraView)
+            mCameraView.enableEncoding();
 
         startAudio();
     }
 
-    public void stopEncode() {
+    public void stopEncode()
+    {
         stopAudio();
         stopCamera();
         mEncoder.stop();
     }
 
-    public void startPublish(String rtmpUrl) {
-        if (mFlvMuxer != null) {
+    public void startPublish(String rtmpUrl)
+    {
+        if (mFlvMuxer != null)
+        {
             mFlvMuxer.start(rtmpUrl);
             mFlvMuxer.setVideoResolution(mEncoder.getOutputWidth(), mEncoder.getOutputHeight());
             startEncode();
         }
     }
 
-    public void stopPublish() {
-        if (mFlvMuxer != null) {
+    public void stopPublish()
+    {
+        if (mFlvMuxer != null)
+        {
             stopEncode();
             mFlvMuxer.stop();
         }
     }
 
-    public boolean startRecord(String recPath) {
+    public boolean startRecord(String recPath)
+    {
         return mMp4Muxer != null && mMp4Muxer.record(new File(recPath));
     }
 
-    public void stopRecord() {
-        if (mMp4Muxer != null) {
+    public void stopRecord()
+    {
+        if (mMp4Muxer != null)
+        {
             mMp4Muxer.stop();
         }
     }
 
-    public void pauseRecord() {
-        if (mMp4Muxer != null) {
+    public void pauseRecord()
+    {
+        if (mMp4Muxer != null)
+        {
             mMp4Muxer.pause();
         }
     }
 
-    public void resumeRecord() {
-        if (mMp4Muxer != null) {
+    public void resumeRecord()
+    {
+        if (mMp4Muxer != null)
+        {
             mMp4Muxer.resume();
         }
     }
 
-    public void switchToSoftEncoder() {
+    public void switchToSoftEncoder()
+    {
         mEncoder.switchToSoftEncoder();
     }
 
-    public void switchToHardEncoder() {
+    public void switchToHardEncoder()
+    {
         mEncoder.switchToHardEncoder();
     }
 
-    public boolean isSoftEncoder() {
+    public boolean isSoftEncoder()
+    {
         return mEncoder.isSoftEncoder();
     }
 
-    public int getPreviewWidth() {
+    public int getPreviewWidth()
+    {
         return mEncoder.getPreviewWidth();
     }
 
-    public int getPreviewHeight() {
+    public int getPreviewHeight()
+    {
         return mEncoder.getPreviewHeight();
     }
 
-    public double getmSamplingFps() {
+    public double getmSamplingFps()
+    {
         return mSamplingFps;
     }
 
-    public int getCamraId() {
-        return mCameraView.getCameraId();
+    /**
+     * @return
+     */
+    public int getCamraId()
+    {
+        return mCameraView == null ? -1 : mCameraView.getCameraId();
     }
 
-    public void setPreviewResolution(int width, int height) {
-        int resolution[] = mCameraView.setPreviewResolution(width, height);
-        mEncoder.setPreviewResolution(resolution[0], resolution[1]);
+    public void setPreviewResolution(int width, int height)
+    {
+        if (null != mCameraView)
+        {
+            int resolution[] = mCameraView.setPreviewResolution(width, height);
+            mEncoder.setPreviewResolution(resolution[0], resolution[1]);
+        }
     }
 
-    public void setOutputResolution(int width, int height) {
-        if (width <= height) {
+    public void setOutputResolution(int width, int height)
+    {
+        if (width <= height)
+        {
             mEncoder.setPortraitResolution(width, height);
-        } else {
+        } else
+        {
             mEncoder.setLandscapeResolution(width, height);
         }
     }
 
-    public void setScreenOrientation(int orientation) {
-        mCameraView.setPreviewOrientation(orientation);
+    public void setScreenOrientation(int orientation)
+    {
+        if (null != mCameraView)
+            mCameraView.setPreviewOrientation(orientation);
         mEncoder.setScreenOrientation(orientation);
     }
 
-    public void setVideoHDMode() {
+    public void setVideoHDMode()
+    {
         mEncoder.setVideoHDMode();
     }
 
-    public void setVideoSmoothMode() {
+    public void setVideoSmoothMode()
+    {
         mEncoder.setVideoSmoothMode();
     }
 
-    public void setSendVideoOnly(boolean flag) {
-        if (mic != null) {
-            if (flag) {
+    public void setSendVideoOnly(boolean flag)
+    {
+        if (mic != null)
+        {
+            if (flag)
+            {
                 mic.stop();
                 mPcmBuffer = new byte[4096];
-            } else {
+            } else
+            {
                 mic.startRecording();
             }
         }
         sendVideoOnly = flag;
     }
 
-    public void setSendAudioOnly(boolean flag) {
+    public void setSendAudioOnly(boolean flag)
+    {
         sendAudioOnly = flag;
     }
 
-    public boolean switchCameraFilter(MagicFilterType type) {
-        return mCameraView.setFilter(type);
+    public boolean switchCameraFilter(MagicFilterType type)
+    {
+        if (null != mCameraView)
+            return mCameraView.setFilter(type);
+        else return false;
     }
 
-    public void switchCameraFace(int id) {
-        mCameraView.stopCamera();
-        mCameraView.setCameraId(id);
-        if (id == 0) {
+    public void switchCameraFace(int id)
+    {
+        if (null != mCameraView)
+        {
+            mCameraView.stopCamera();
+            mCameraView.setCameraId(id);
+        }
+        if (id == 0)
+        {
             mEncoder.setCameraBackFace();
-        } else {
+        } else
+        {
             mEncoder.setCameraFrontFace();
         }
-        if (mEncoder != null && mEncoder.isEnabled()) {
-            mCameraView.enableEncoding();
+        if (mEncoder != null && mEncoder.isEnabled())
+        {
+            if (null != mCameraView)
+                mCameraView.enableEncoding();
         }
-        mCameraView.startCamera();
+        if (null != mCameraView)
+            mCameraView.startCamera();
     }
 
-    public void setRtmpHandler(RtmpHandler handler) {
+    public void setRtmpHandler(RtmpHandler handler)
+    {
         mFlvMuxer = new SrsFlvMuxer(handler);
-        if (mEncoder != null) {
+        if (mEncoder != null)
+        {
             mEncoder.setFlvMuxer(mFlvMuxer);
         }
     }
 
-    public void setRecordHandler(SrsRecordHandler handler) {
+    public void setRecordHandler(SrsRecordHandler handler)
+    {
         mMp4Muxer = new SrsMp4Muxer(handler);
-        if (mEncoder != null) {
+        if (mEncoder != null)
+        {
             mEncoder.setMp4Muxer(mMp4Muxer);
         }
     }
 
-    public void setEncodeHandler(SrsEncodeHandler handler) {
+    public void setEncodeHandler(SrsEncodeHandler handler)
+    {
         mEncoder = new SrsEncoder(handler);
-        if (mFlvMuxer != null) {
+        if (mFlvMuxer != null)
+        {
             mEncoder.setFlvMuxer(mFlvMuxer);
         }
-        if (mMp4Muxer != null) {
+        if (mMp4Muxer != null)
+        {
             mEncoder.setMp4Muxer(mMp4Muxer);
         }
     }

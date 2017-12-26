@@ -54,6 +54,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mEncoderBtn.setOnClickListener(this);
 
         mPublisher = new SrsPublisher((SrsCameraView) findViewById(R.id.glsurfaceview_camera));
+//        mPublisher = new SrsPublisher(null);
         //编码状态回调
         mPublisher.setEncodeHandler(new SrsEncodeHandler(this));
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
@@ -69,6 +70,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mPublisher.switchCameraFilter(MagicFilterType.NONE);
         //打开摄像头，开始预览（未推流）
         mPublisher.startCamera();
+        mPublisher.switchCameraFace((mPublisher.getCamraId() + 1) % Camera.getNumberOfCameras());
     }
 
     @Override
