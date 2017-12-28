@@ -281,7 +281,7 @@ public class SrsEncoder {
             vOutWidth = vLandscapeWidth;
             vOutHeight = vLandscapeHeight;
         }
-        
+
         // Note: the stride of resolution must be set as 16x for hard encoding with some chip like MTK
         // Since Y component is quadruple size as U and V component, the stride must be set as 32x
         if (!useSoftEncoder && (vOutWidth % 32 != 0 || vOutHeight % 32 != 0)) {
@@ -407,10 +407,10 @@ public class SrsEncoder {
 
     public AudioRecord chooseAudioRecord() {
         AudioRecord mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
-            AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+                AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
         if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
             mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
             if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
                 mic = null;
             } else {
@@ -425,7 +425,7 @@ public class SrsEncoder {
 
     private int getPcmBufferSize() {
         int pcmBufSize = AudioRecord.getMinBufferSize(ASAMPLERATE, AudioFormat.CHANNEL_IN_STEREO,
-            AudioFormat.ENCODING_PCM_16BIT) + 8191;
+                AudioFormat.ENCODING_PCM_16BIT) + 8191;
         return pcmBufSize - (pcmBufSize % 8192);
     }
 

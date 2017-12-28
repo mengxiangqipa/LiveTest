@@ -43,6 +43,10 @@
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".CameraNoDisplayActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".PlayerActivity"
             android:screenOrientation="portrait" />
 

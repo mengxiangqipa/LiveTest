@@ -18,8 +18,9 @@ import com.seu.magicfilter.utils.MagicFilterType;
 
 import net.ossrs.yasea.SrsCameraView;
 import net.ossrs.yasea.SrsEncodeHandler;
-import net.ossrs.yasea.SrsPublisherTest;
+import net.ossrs.yasea.SrsPublisherTestNodisplay;
 import net.ossrs.yasea.SrsRecordHandler;
+import net.ossrs.yasea.SrsSurfaceNoDisplay;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -27,7 +28,7 @@ import java.net.SocketException;
 /**
  * Created by Sikang on 2017/5/2.
  */
-public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
+public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
         SrsRecordHandler.SrsRecordListener, View.OnClickListener
 {
     private static final String TAG = "CameraActivity";
@@ -35,15 +36,18 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
     private Button mCameraSwitchBtn;
     private Button mEncoderBtn;
     private EditText mRempUrlEt;
-    private SrsPublisherTest mPublisher;
+    private SrsPublisherTestNodisplay mPublisher;
     private String rtmpUrl;
 
+    /**
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.activity_camera);
+        setContentView(R.layout.activity_camera_no_display);
 
         mPublishBtn = (Button) findViewById(R.id.publish);
         mCameraSwitchBtn = (Button) findViewById(R.id.swCam);
@@ -53,7 +57,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mCameraSwitchBtn.setOnClickListener(this);
         mEncoderBtn.setOnClickListener(this);
 
-        mPublisher = new SrsPublisherTest((SrsCameraView) findViewById(R.id.glsurfaceview_camera));
+        mPublisher = new SrsPublisherTestNodisplay(new SrsSurfaceNoDisplay(CameraNoDisplayActivity.this));
 //        SrsCameraView srsCameraView = new SrsCameraView(this);
 //        mPublisher = new SrsPublisherTest(srsCameraView);
         //编码状态回调

@@ -8,6 +8,7 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private Button mPushBtn;
+    private Button mPush2Btn;
     private Button mPlayBtn;
 
     @Override
@@ -16,7 +17,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         mPushBtn = (Button) findViewById(R.id.push_stream_btn);
         mPlayBtn = (Button) findViewById(R.id.play_stream_btn);
+        mPush2Btn = (Button) findViewById(R.id.push_stream2_btn);
         mPushBtn.setOnClickListener(this);
+        mPush2Btn.setOnClickListener(this);
         mPlayBtn.setOnClickListener(this);
     }
 
@@ -25,6 +28,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.push_stream_btn:
                 startActivity(new Intent(this,CameraActivity.class));
+                break;
+            case R.id.push_stream2_btn:
+                startActivity(new Intent(this,CameraNoDisplayActivity.class));
                 break;
             case R.id.play_stream_btn:
                 startActivity(new Intent(this,PlayerActivity.class));
