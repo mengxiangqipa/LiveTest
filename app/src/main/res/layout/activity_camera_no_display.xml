@@ -31,6 +31,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="软编码" />
+
+        <Button
+            android:id="@+id/dddd"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:text="test" />
     </LinearLayout>
 
     <EditText

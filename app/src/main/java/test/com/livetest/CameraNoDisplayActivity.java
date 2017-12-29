@@ -1,11 +1,17 @@
 package test.com.livetest;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.opengl.GLES20;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -14,21 +20,28 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.github.faucamp.simplertmp.RtmpHandler;
+import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.MagicFilterType;
+import com.seu.magicfilter.utils.OpenGLUtils;
 
 import net.ossrs.yasea.SrsCameraView;
 import net.ossrs.yasea.SrsEncodeHandler;
+import net.ossrs.yasea.SrsEncoder;
 import net.ossrs.yasea.SrsPublisherTestNodisplay;
 import net.ossrs.yasea.SrsRecordHandler;
 import net.ossrs.yasea.SrsSurfaceNoDisplay;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.List;
+
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Created by Sikang on 2017/5/2.
  */
-public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
+public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler
+        .RtmpListener,
         SrsRecordHandler.SrsRecordListener, View.OnClickListener
 {
     private static final String TAG = "CameraActivity";
@@ -77,11 +90,14 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
 
         //传输率
         mPublisher.setVideoHDMode();
+//        mPublisher.setVideoSmoothMode();
         //开启美颜（其他滤镜效果在MagicFilterType中查看）
         mPublisher.switchCameraFilter(MagicFilterType.NONE);
         //打开摄像头，开始预览（未推流）
         mPublisher.startCamera();
         mPublisher.switchCameraFace((mPublisher.getCamraId() + 1) % Camera.getNumberOfCameras());
+
+//        init(this);todo test
     }
 
     @Override
@@ -134,7 +150,189 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
                     mEncoderBtn.setText("软编码");
                 }
                 break;
+            case R.id.dddd:
+                Log.e("yy", "我的");
+                startCamera();
+                break;
         }
+    }
+
+    private Camera mCamera;
+    private int mPreviewWidth = 1280;
+    private int mPreviewHeight = 720;
+    private boolean mIsTorchOn = false;
+    private int mPreviewRotation = 90;
+    private SurfaceTexture surfaceTexture;
+    private byte[] callbackBuffer;
+    private int mOESTextureId = OpenGLUtils.NO_TEXTURE;
+
+    public boolean startCamera()
+    {
+        if (mCamera == null)
+        {
+            mCamera = openCamera();
+            if (mCamera == null)
+            {
+                return false;
+            }
+        }
+        Log.e("yy", "startCamera1");
+        Camera.Parameters params = mCamera.getParameters();
+        params.setPictureSize(mPreviewWidth, mPreviewHeight);
+        params.setPreviewSize(mPreviewWidth, mPreviewHeight);
+        int[] range = adaptFpsRange(SrsEncoder.VFPS, params.getSupportedPreviewFpsRange());
+        params.setPreviewFpsRange(range[0], range[1]);
+        params.setPreviewFormat(ImageFormat.NV21);
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
+        params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
+        Log.e("yy", "startCamera2");
+        List<String> supportedFocusModes = params.getSupportedFocusModes();
+        if (supportedFocusModes != null && !supportedFocusModes.isEmpty())
+        {
+            if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+            {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO))
+            {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                mCamera.autoFocus(null);
+            } else
+            {
+                params.setFocusMode(supportedFocusModes.get(0));
+            }
+        }
+        Log.e("yy", "startCamera3");
+        List<String> supportedFlashModes = params.getSupportedFlashModes();
+        if (supportedFlashModes != null && !supportedFlashModes.isEmpty())
+        {
+            if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
+            {
+                if (mIsTorchOn)
+                {
+                    params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                }
+            } else
+            {
+                params.setFlashMode(supportedFlashModes.get(0));
+            }
+        }
+        Log.e("yy", "startCamera4");
+        mCamera.setParameters(params);
+
+        mCamera.setDisplayOrientation(mPreviewRotation);
+        Log.e("yy", "startCamera5");
+        try
+        {
+            mCamera.setPreviewTexture(surfaceTexture);
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        Log.e("yy", "startCamera6");
+        callbackBuffer = new byte[1280 * 720];
+        mCamera.addCallbackBuffer(callbackBuffer);
+//        mCamera.setPreviewCallback(new Camera.PreviewCallback()
+//        {
+//            @Override
+//            public void onPreviewFrame(byte[] data, Camera camera)
+//            {
+//                Log.e("yy", "setPreviewCallback：" + (data == null));
+//            }
+//        });
+        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback()
+        {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera)
+            {
+                Log.e("yy","onPreviewFrame："+(data==null));
+                mCamera.addCallbackBuffer(callbackBuffer);
+            }
+        });
+        Log.e("yy", "startCamera7");
+        mCamera.startPreview();
+        Log.e("yy", "startCamera8");
+        return true;
+    }
+
+    public void init(@NonNull Context context)
+    {
+        GLES20.glDisable(GL10.GL_DITHER);
+        GLES20.glClearColor(0, 0, 0, 0);
+
+        mOESTextureId = OpenGLUtils.getExternalOESTextureID();
+        surfaceTexture = new SurfaceTexture(mOESTextureId);
+        Log.e("yy","init:"+mOESTextureId);
+        // For camera preview on activity creation
+        if (mCamera != null)
+        {
+            try
+            {
+                mCamera.setPreviewTexture(surfaceTexture);
+            } catch (IOException ioe)
+            {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
+    private int mCamId = -1;
+
+    private Camera openCamera()
+    {
+        Camera camera;
+        if (mCamId < 0)
+        {
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            int numCameras = Camera.getNumberOfCameras();
+            int frontCamId = -1;
+            int backCamId = -1;
+            for (int i = 0; i < numCameras; i++)
+            {
+                Camera.getCameraInfo(i, info);
+                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
+                {
+                    backCamId = i;
+                } else if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+                {
+                    frontCamId = i;
+                    break;
+                }
+            }
+            if (frontCamId != -1)
+            {
+                mCamId = frontCamId;
+            } else if (backCamId != -1)
+            {
+                mCamId = backCamId;
+            } else
+            {
+                mCamId = 0;
+            }
+        }
+        camera = Camera.open(mCamId);
+        return camera;
+    }
+
+    private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges)
+    {
+        expectedFps *= 1000;
+        int[] closestRange = fpsRanges.get(0);
+        int measure = Math.abs(closestRange[0] - expectedFps) + Math.abs(closestRange[1] - expectedFps);
+        for (int[] range : fpsRanges)
+        {
+            if (range[0] <= expectedFps && range[1] >= expectedFps)
+            {
+                int curMeasure = Math.abs(range[0] - expectedFps) + Math.abs(range[1] - expectedFps);
+                if (curMeasure < measure)
+                {
+                    closestRange = range;
+                    measure = curMeasure;
+                }
+            }
+        }
+        return closestRange;
     }
 
     @Override

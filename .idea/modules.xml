@@ -6,10 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/Library-vitamio/Library-vitamio.iml" filepath="$PROJECT_DIR$/Library-vitamio/Library-vitamio.iml" />
       <module fileurl="file://$PROJECT_DIR$/LiveTest.iml" filepath="$PROJECT_DIR$/LiveTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://D:\AS_DEMO\LiveTest\library\library.iml" filepath="D:\AS_DEMO\LiveTest\library\library.iml" />
-      <module fileurl="file://D:\AS_DEMO\LiveTest\Library-live\library.iml" filepath="D:\AS_DEMO\LiveTest\Library-live\library.iml" />
-      <module fileurl="file://D:\AS_DEMO\LiveTest\vitamio\vitamio.iml" filepath="D:\AS_DEMO\LiveTest\vitamio\vitamio.iml" />
-      <module fileurl="file://D:\AS_DEMO\LiveTest\Library-vitamio\vitamio.iml" filepath="D:\AS_DEMO\LiveTest\Library-vitamio\vitamio.iml" />
     </modules>
   </component>
 </project>
