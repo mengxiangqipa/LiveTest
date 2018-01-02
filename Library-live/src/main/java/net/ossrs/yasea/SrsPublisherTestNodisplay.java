@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author YobertJomi
@@ -76,14 +77,16 @@ public class SrsPublisherTestNodisplay
                 public void onGetRgbaFrame(byte[] data, int width, int height)
                 {
                     String a = "我是初始数据";
-//                    try
-//                    {
-//                        a=new String(data,"utf-8");
-//                    } catch (UnsupportedEncodingException e)
-//                    {
-//                        e.printStackTrace();
-//                    }
-                    Log.e("yy", "onGetRgbaFrame:" + "data:" + (a) + " width:" + width + " height:" +
+                    try
+                    {
+                        a=new String(data,"utf-8");
+                    } catch (UnsupportedEncodingException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    Log.e("yy", "onGetRgbaFrame:" + "data:" +
+                            (data.length) +
+                            " width:" + width + " height:" +
                             height + "  videoFrameCount:" + videoFrameCount + "   mSamplingFps:" + mSamplingFps);
                     calcSamplingFps();
                     if (!sendAudioOnly)

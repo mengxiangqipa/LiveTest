@@ -10,10 +10,8 @@ import com.seu.magicfilter.utils.MagicFilterType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 /**
  * @author YobertJomi
@@ -84,7 +82,7 @@ public class SrsPublisherTest
 //                    {
 //                        e.printStackTrace();
 //                    }
-                    Log.e("yy", "onGetRgbaFrame:" + "data:" + (a) + " width:" + width + " height:" +
+                    Log.e("yy", "onGetRgbaFrame:" + "data:" + (data.length) + " width:" + width + " height:" +
                             height + "  videoFrameCount:" + videoFrameCount + "   mSamplingFps:" + mSamplingFps);
                     calcSamplingFps();
                     if (!sendAudioOnly)

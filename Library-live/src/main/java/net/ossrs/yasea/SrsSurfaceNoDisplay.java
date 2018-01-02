@@ -2,12 +2,19 @@ package net.ossrs.yasea;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
@@ -15,8 +22,10 @@ import com.seu.magicfilter.utils.MagicFilterFactory;
 import com.seu.magicfilter.utils.MagicFilterType;
 import com.seu.magicfilter.utils.OpenGLUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -59,10 +68,11 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
     private PreviewCallback mPrevCb;
     private Context context;
     private byte[] callbackBuffer;
+    private IntBuffer mGLFboBuffer;
     public SrsSurfaceNoDisplay(Context context)
     {
         this.context = context;
-        Log.e("yy","SrsSurfaceNoDisplay");
+        Log.e("yy", "SrsSurfaceNoDisplay");
         init(context);
     }
 
@@ -95,6 +105,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
     //    @Override
     public void onSurfaceChanged(GL10 gl, int width, int height)
     {
+        Log.e("yy", "onSurfaceChanged:" + "onSurfaceChanged");
         GLES20.glViewport(0, 0, width, height);
         mSurfaceWidth = width;
         mSurfaceHeight = height;
@@ -111,19 +122,38 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         }
     }
 
+    private void test(float[] mSurfaceMatrix)
+    {
+        if (null != mSurfaceMatrix)
+            for (int i = 0; i < mSurfaceMatrix.length; i++)
+            {
+                Log.e("yy", "test" + i + ":" + mSurfaceMatrix[i] + "   " + Thread.currentThread());
+            }
+    }
+
     //    @Override
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void onDrawFrame(GL10 gl)
     {
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        surfaceTexture.updateTexImage();
-
+//        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+//        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+//
+//        try
+//        {
+//            surfaceTexture.updateTexImage();
+//        } catch (Exception e)
+//        {
+//            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp());
+//        }
+//        test(mSurfaceMatrix);
+//        test(mTransformMatrix);
+//        test(mProjectionMatrix);
         surfaceTexture.getTransformMatrix(mSurfaceMatrix);
         Matrix.multiplyMM(mTransformMatrix, 0, mSurfaceMatrix, 0, mProjectionMatrix, 0);
         magicFilter.setTextureTransformMatrix(mTransformMatrix);
-        magicFilter.onDrawFrame(mOESTextureId);
 
+        int a = magicFilter.onDrawFrame(mOESTextureId);
+        Log.e("yy", "onDrawFrame：返回结果：" + a+"  mIsEncoding:"+mIsEncoding+"  magicFilter.getGLFboBuffer():"+magicFilter.getGLFboBuffer().hasArray());
         if (mIsEncoding)
         {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
@@ -258,9 +288,13 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
                     while (!mGLIntBufferCache.isEmpty())
                     {
                         IntBuffer picture = mGLIntBufferCache.poll();
+                        Log.e("yy", "enableEncoding:picture==null:" + (picture == null));
                         mGLPreviewBuffer.asIntBuffer().put(picture.array());
+                        Log.e("yy", "enableEncoding:picture.array.lenth:" + (picture.array().length) + "  " +
+                                "mPreviewWidth:" + mPreviewWidth + "  mPreviewHeight:" + mPreviewHeight);
                         mPrevCb.onGetRgbaFrame(mGLPreviewBuffer.array(), mPreviewWidth, mPreviewHeight);
                     }
+
                     // Waiting for next frame
                     synchronized (writeLock)
                     {
@@ -358,35 +392,74 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 
         try
         {
-            Log.e("yy","surfaceTexture==null："+(surfaceTexture==null));
             mCamera.setPreviewTexture(surfaceTexture);
         } catch (IOException e)
         {
             e.printStackTrace();
         }
-        mCamera.startPreview();
 
-        callbackBuffer=new byte[1280*720];
-        mCamera.addCallbackBuffer(callbackBuffer);
+//        callbackBuffer = new byte[1280 * 720];
+//        mCamera.addCallbackBuffer(callbackBuffer);
+        final IntBuffer mGLFboBuffer = IntBuffer.allocate(1280 * 720);
         mCamera.setPreviewCallback(new Camera.PreviewCallback()
         {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera)
             {
-                Log.e("yy","setPreviewCallback："+(data==null));
-            }
-        });
-        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback()
-        {
-            @Override
-            public void onPreviewFrame(byte[] data, Camera camera)
-            {
-                Log.e("yy","onPreviewFrame："+(data==null));
+                Log.e("yy", "setPreviewCallback：" + (data == null) + " data.lenth:" + data.length);
+                GLES20.glReadPixels(0, 0, 1280, 720, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                        mGLFboBuffer);
+//                while(data!=null&&mGLFboBuffer.hasArray()){
+//                mGLFboBuffer.put(data.)
+//                }
+//                mGLIntBufferCache.add(mGLFboBuffer);
+
+
+//                runInPreviewFrame(data, camera);
                 onDrawFrame(null);
             }
         });
+//        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback()
+//        {
+//            @Override
+//            public void onPreviewFrame(byte[] data, Camera camera)
+//            {
+//                Log.e("yy","onPreviewFrame："+(data==null));
+//                onDrawFrame(null);
+//                mCamera.addCallbackBuffer(callbackBuffer);
+//            }
+//        });
 
+        mCamera.startPreview();
         return true;
+    }
+
+    ByteArrayOutputStream baos;
+    byte[] rawImage;
+    Bitmap bitmap;
+
+    public void runInPreviewFrame(byte[] data, Camera camera)
+    {
+//        camera.setOneShotPreviewCallback(null);
+        //处理data
+        Camera.Size previewSize = camera.getParameters().getPreviewSize();//获取尺寸,格式转换的时候要用到
+        BitmapFactory.Options newOpts = new BitmapFactory.Options();
+        newOpts.inJustDecodeBounds = true;
+        YuvImage yuvimage = new YuvImage(
+                data,
+                ImageFormat.NV21,
+                previewSize.width,
+                previewSize.height,
+                null);
+        baos = new ByteArrayOutputStream();
+        yuvimage.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 100, baos);//
+        // 80--JPG图片的质量[0-100],100最高
+        rawImage = baos.toByteArray();
+        Log.e("yy", "rawImage:" + rawImage.length);
+        //将rawImage转换成bitmap
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length, options);
     }
 
     public void stopCamera()
@@ -395,6 +468,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 
         if (mCamera != null)
         {
+            mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
@@ -481,7 +555,8 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture)
     {
-//        Log.e("yy","onFrameAvailable");
+        Log.e("yy", "22onFrameAvailable");
+//        surfaceTexture.updateTexImage();
 //        init(context);
 //        mCamera.addCallbackBuffer(callbackBuffer);
     }

@@ -120,14 +120,6 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
             Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
         }
     }
-    private void test(float[] mSurfaceMatrix)
-    {
-        if (null != mSurfaceMatrix)
-            for (int i = 0; i < mSurfaceMatrix.length; i++)
-            {
-                Log.e("yy", "test" +i+":"+ mSurfaceMatrix[i]+"   "+Thread.currentThread());
-            }
-    }
 
     @Override
     public void onDrawFrame(GL10 gl)
@@ -139,12 +131,9 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         surfaceTexture.getTransformMatrix(mSurfaceMatrix);
         Matrix.multiplyMM(mTransformMatrix, 0, mSurfaceMatrix, 0, mProjectionMatrix, 0);
         magicFilter.setTextureTransformMatrix(mTransformMatrix);
-        magicFilter.onDrawFrame(mOESTextureId);
+       int a= magicFilter.onDrawFrame(mOESTextureId);
 
-        test(mSurfaceMatrix);
-        test(mTransformMatrix);
-        test(mProjectionMatrix);
-
+        Log.e("yy", "onDrawFrame：返回结果：" + a+"  mIsEncoding:"+mIsEncoding+"  magicFilter.getGLFboBuffer():"+magicFilter.getGLFboBuffer().hasArray());
         if (mIsEncoding)
         {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
