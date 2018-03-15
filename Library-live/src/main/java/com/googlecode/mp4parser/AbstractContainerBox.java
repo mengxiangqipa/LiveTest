@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
-
 /**
  * Abstract base class suitable for most boxes acting purely as container for other boxes.
  */
@@ -41,6 +40,10 @@ public abstract class AbstractContainerBox extends AbstractBox implements Contai
     protected List<Box> boxes = new LinkedList<Box>();
     protected BoxParser boxParser;
 
+    public AbstractContainerBox(String type) {
+        super(type);
+    }
+
     @Override
     protected long getContentSize() {
         long contentSize = 0;
@@ -48,10 +51,6 @@ public abstract class AbstractContainerBox extends AbstractBox implements Contai
             contentSize += boxe.getSize();
         }
         return contentSize;
-    }
-
-    public AbstractContainerBox(String type) {
-        super(type);
     }
 
     public List<Box> getBoxes() {
@@ -101,7 +100,8 @@ public abstract class AbstractContainerBox extends AbstractBox implements Contai
     }
 
     @Override
-    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
+    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser
+            boxParser) throws IOException {
         this.boxParser = boxParser;
         super.parse(readableByteChannel, header, contentSize, boxParser);
     }
@@ -110,7 +110,6 @@ public abstract class AbstractContainerBox extends AbstractBox implements Contai
     public void _parseDetails(ByteBuffer content) {
         parseChildBoxes(content);
     }
-
 
     public String toString() {
         StringBuilder buffer = new StringBuilder();
@@ -167,5 +166,4 @@ public abstract class AbstractContainerBox extends AbstractBox implements Contai
             }
         }
     }
-
 }

@@ -34,6 +34,7 @@ public interface ContainerBox extends Box {
 
     /**
      * Sets all boxes and removes all previous child boxes.
+     *
      * @param boxes the new list of children
      */
     void setBoxes(List<Box> boxes);

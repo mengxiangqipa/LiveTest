@@ -16,12 +16,17 @@
 
 package com.coremedia.iso;
 
-import com.googlecode.mp4parser.AbstractContainerBox;
 import com.coremedia.iso.boxes.Box;
 import com.coremedia.iso.boxes.MovieBox;
+import com.googlecode.mp4parser.AbstractContainerBox;
 import com.googlecode.mp4parser.annotations.DoNotParseDetail;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -59,21 +64,43 @@ public class IsoFile extends AbstractContainerBox implements Closeable {
         this.byteChannel = byteChannel;
         this.boxParser = boxParser;
         parse();
+    }
 
+    @DoNotParseDetail
+    public static byte[] fourCCtoBytes(String fourCC) {
+        byte[] result = new byte[4];
+        if (fourCC != null) {
+            for (int i = 0; i < Math.min(4, fourCC.length()); i++) {
+                result[i] = (byte) fourCC.charAt(i);
+            }
+        }
+        return result;
+    }
 
+    @DoNotParseDetail
+    public static String bytesToFourCC(byte[] type) {
+        byte[] result = new byte[]{0, 0, 0, 0};
+        if (type != null) {
+            System.arraycopy(type, 0, result, 0, Math.min(type.length, 4));
+        }
+        try {
+            return new String(result, "ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            throw new Error("Required character encoding is missing", e);
+        }
     }
 
     protected BoxParser createBoxParser() {
         return new PropertyBoxParserImpl();
     }
 
-
     @Override
     public void _parseDetails(ByteBuffer content) {
         // there are no details to parse we should be just file
     }
 
-    public void parse(ReadableByteChannel inFC, ByteBuffer header, long contentSize, AbstractBoxParser abstractBoxParser) throws IOException {
+    public void parse(ReadableByteChannel inFC, ByteBuffer header, long contentSize, AbstractBoxParser
+            abstractBoxParser) throws IOException {
         throw new IOException("This method is not meant to be called. Use #parse() directly.");
     }
 
@@ -113,31 +140,6 @@ public class IsoFile extends AbstractContainerBox implements Closeable {
         return buffer.toString();
     }
 
-    @DoNotParseDetail
-    public static byte[] fourCCtoBytes(String fourCC) {
-        byte[] result = new byte[4];
-        if (fourCC != null) {
-            for (int i = 0; i < Math.min(4, fourCC.length()); i++) {
-                result[i] = (byte) fourCC.charAt(i);
-            }
-        }
-        return result;
-    }
-
-    @DoNotParseDetail
-    public static String bytesToFourCC(byte[] type) {
-        byte[] result = new byte[]{0, 0, 0, 0};
-        if (type != null) {
-            System.arraycopy(type, 0, result, 0, Math.min(type.length, 4));
-        }
-        try {
-            return new String(result, "ISO-8859-1");
-        } catch (UnsupportedEncodingException e) {
-            throw new Error("Required character encoding is missing", e);
-        }
-    }
-
-
     @Override
     public long getNumOfBytesToFirstChild() {
         return 0;
@@ -156,7 +158,6 @@ public class IsoFile extends AbstractContainerBox implements Closeable {
     public IsoFile getIsoFile() {
         return this;
     }
-
 
     /**
      * Shortcut to get the MovieBox since it is often needed and present in
@@ -185,7 +186,6 @@ public class IsoFile extends AbstractContainerBox implements Closeable {
             } else {
                 box.getBox(os);
             }
-
         }
     }
 

@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.coremedia.iso.IsoTypeWriter;
 import com.googlecode.mp4parser.FullContainerBox;
 
@@ -39,7 +38,6 @@ public class DataReferenceBox extends FullContainerBox {
 
     public DataReferenceBox() {
         super(TYPE);
-
     }
 
     @Override
@@ -54,12 +52,10 @@ public class DataReferenceBox extends FullContainerBox {
         parseChildBoxes(content);
     }
 
-
     @Override
     protected void getContent(ByteBuffer byteBuffer) {
         writeVersionAndFlags(byteBuffer);
         IsoTypeWriter.writeUInt32(byteBuffer, getBoxes().size());
         writeChildBoxes(byteBuffer);
     }
-
 }

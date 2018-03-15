@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.coremedia.iso.IsoTypeReader;
 import com.coremedia.iso.IsoTypeWriter;
 import com.googlecode.mp4parser.AbstractFullBox;
@@ -50,50 +49,88 @@ public class TrackHeaderBox extends AbstractFullBox {
     private double width;
     private double height;
 
-
     public TrackHeaderBox() {
         super(TYPE);
-
     }
 
     public Date getCreationTime() {
         return creationTime;
     }
 
+    public void setCreationTime(Date creationTime) {
+        this.creationTime = creationTime;
+    }
+
     public Date getModificationTime() {
         return modificationTime;
+    }
+
+    public void setModificationTime(Date modificationTime) {
+        this.modificationTime = modificationTime;
     }
 
     public long getTrackId() {
         return trackId;
     }
 
+    public void setTrackId(long trackId) {
+        this.trackId = trackId;
+    }
+
     public long getDuration() {
         return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
     public int getLayer() {
         return layer;
     }
 
+    public void setLayer(int layer) {
+        this.layer = layer;
+    }
+
     public int getAlternateGroup() {
         return alternateGroup;
+    }
+
+    public void setAlternateGroup(int alternateGroup) {
+        this.alternateGroup = alternateGroup;
     }
 
     public float getVolume() {
         return volume;
     }
 
+    public void setVolume(float volume) {
+        this.volume = volume;
+    }
+
     public Matrix getMatrix() {
         return matrix;
+    }
+
+    public void setMatrix(Matrix matrix) {
+        this.matrix = matrix;
     }
 
     public double getWidth() {
         return width;
     }
 
+    public void setWidth(double width) {
+        this.width = width;
+    }
+
     public double getHeight() {
         return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
     }
 
     protected long getContentSize() {
@@ -186,61 +223,8 @@ public class TrackHeaderBox extends AbstractFullBox {
         return result.toString();
     }
 
-    public void setCreationTime(Date creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    public void setModificationTime(Date modificationTime) {
-        this.modificationTime = modificationTime;
-    }
-
-    public void setTrackId(long trackId) {
-        this.trackId = trackId;
-    }
-
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
-
-    public void setLayer(int layer) {
-        this.layer = layer;
-    }
-
-    public void setAlternateGroup(int alternateGroup) {
-        this.alternateGroup = alternateGroup;
-    }
-
-    public void setVolume(float volume) {
-        this.volume = volume;
-    }
-
-    public void setMatrix(Matrix matrix) {
-        this.matrix = matrix;
-    }
-
-    public void setWidth(double width) {
-        this.width = width;
-    }
-
-    public void setHeight(double height) {
-        this.height = height;
-    }
-
-
     public boolean isEnabled() {
         return (getFlags() & 1) > 0;
-    }
-
-    public boolean isInMovie() {
-        return (getFlags() & 2) > 0;
-    }
-
-    public boolean isInPreview() {
-        return (getFlags() & 4) > 0;
-    }
-
-    public boolean isInPoster() {
-        return (getFlags() & 8) > 0;
     }
 
     public void setEnabled(boolean enabled) {
@@ -251,6 +235,10 @@ public class TrackHeaderBox extends AbstractFullBox {
         }
     }
 
+    public boolean isInMovie() {
+        return (getFlags() & 2) > 0;
+    }
+
     public void setInMovie(boolean inMovie) {
         if (inMovie) {
             setFlags(getFlags() | 2);
@@ -259,12 +247,20 @@ public class TrackHeaderBox extends AbstractFullBox {
         }
     }
 
+    public boolean isInPreview() {
+        return (getFlags() & 4) > 0;
+    }
+
     public void setInPreview(boolean inPreview) {
         if (inPreview) {
             setFlags(getFlags() | 4);
         } else {
             setFlags(getFlags() & ~4);
         }
+    }
+
+    public boolean isInPoster() {
+        return (getFlags() & 8) > 0;
     }
 
     public void setInPoster(boolean inPoster) {

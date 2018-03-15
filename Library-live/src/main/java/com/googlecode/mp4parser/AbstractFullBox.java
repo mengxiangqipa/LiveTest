@@ -16,7 +16,6 @@
 
 package com.googlecode.mp4parser;
 
-
 import com.coremedia.iso.IsoTypeReader;
 import com.coremedia.iso.IsoTypeWriter;
 import com.coremedia.iso.boxes.FullBox;
@@ -53,7 +52,6 @@ public abstract class AbstractFullBox extends AbstractBox implements FullBox {
     public void setFlags(int flags) {
         this.flags = flags;
     }
-
 
     /**
      * Parses the version/flags header and returns the remaining box size.

@@ -18,10 +18,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Leo Ma on 4/1/2016.
  */
 public class SrsEncoder {
-    private static final String TAG = "SrsEncoder";
-
     public static final String VCODEC = "video/avc";
     public static final String ACODEC = "audio/mp4a-latm";
+    public static final int VFPS = 24;
+    public static final int VGOP = 48;
+    public static final int ASAMPLERATE = 44100;
+    public static final int ABITRATE = 128 * 1024;  // 128 kbps
+    private static final String TAG = "SrsEncoder";
     public static String x264Preset = "veryfast";
     public static int vPrevWidth = 640;
     public static int vPrevHeight = 360;
@@ -29,39 +32,35 @@ public class SrsEncoder {
     public static int vPortraitHeight = 1280;
     public static int vLandscapeWidth = 1280;
     public static int vLandscapeHeight = 720;
-    public static int vOutWidth = 720;   // Note: the stride of resolution must be set as 16x for hard encoding with some chip like MTK
-    public static int vOutHeight = 1280;  // Since Y component is quadruple size as U and V component, the stride must be set as 32x
+    public static int vOutWidth = 720;   // Note: the stride of resolution must be set as 16x for hard encoding with
+    // some chip like MTK
+    public static int vOutHeight = 1280;  // Since Y component is quadruple size as U and V component, the stride
+    // must be set as 32x
     public static int vBitrate = 1200 * 1024;  // 1200 kbps
-    public static final int VFPS = 24;
-    public static final int VGOP = 48;
-    public static final int ASAMPLERATE = 44100;
     public static int aChannelConfig = AudioFormat.CHANNEL_IN_STEREO;
-    public static final int ABITRATE = 128 * 1024;  // 128 kbps
+
+    static {
+        System.loadLibrary("yuv");
+        System.loadLibrary("enc");
+    }
 
     private SrsEncodeHandler mHandler;
-
     private SrsFlvMuxer flvMuxer;
     private SrsMp4Muxer mp4Muxer;
-
     private MediaCodecInfo vmci;
     private MediaCodec vencoder;
     private MediaCodec aencoder;
     private MediaCodec.BufferInfo vebi = new MediaCodec.BufferInfo();
     private MediaCodec.BufferInfo aebi = new MediaCodec.BufferInfo();
-
     private boolean networkWeakTriggered = false;
     private boolean mCameraFaceFront = true;
     private boolean useSoftEncoder = false;
     private boolean canSoftEncode = false;
-
     private long mPresentTimeUs;
-
     private int mVideoColorFormat;
-
     private int videoFlvTrack;
     private int videoMp4Track;
     private int audioFlvTrack;
-    private int audioMp4Track;
 
     // Y, U (Cb) and V (Cr)
     // yuv420                     yuv yuv yuv yuv
@@ -73,6 +72,7 @@ public class SrsEncoder {
     // NV21 -> YUV420SP  yyyy*2 vu vu
     // NV16 -> YUV422SP  yyyy uv uv
     // YUY2 -> YUV422SP  yuyv yuyv
+    private int audioMp4Track;
 
     public SrsEncoder(SrsEncodeHandler handler) {
         mHandler = handler;
@@ -486,23 +486,28 @@ public class SrsEncoder {
             Log.i(TAG, String.format("vencoder %s support profile %d, level %d", vmci.getName(), pl.profile, pl.level));
         }
 
-        Log.i(TAG, String.format("vencoder %s choose color format 0x%x(%d)", vmci.getName(), matchedColorFormat, matchedColorFormat));
+        Log.i(TAG, String.format("vencoder %s choose color format 0x%x(%d)", vmci.getName(), matchedColorFormat,
+                matchedColorFormat));
         return matchedColorFormat;
     }
 
     private native void setEncoderResolution(int outWidth, int outHeight);
-    private native void setEncoderFps(int fps);
-    private native void setEncoderGop(int gop);
-    private native void setEncoderBitrate(int bitrate);
-    private native void setEncoderPreset(String preset);
-    private native byte[] RGBAToI420(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
-    private native byte[] RGBAToNV12(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
-    private native int RGBASoftEncode(byte[] rgbaFrame, int width, int height, boolean flip, int rotate, long pts);
-    private native boolean openSoftEncoder();
-    private native void closeSoftEncoder();
 
-    static {
-        System.loadLibrary("yuv");
-        System.loadLibrary("enc");
-    }
+    private native void setEncoderFps(int fps);
+
+    private native void setEncoderGop(int gop);
+
+    private native void setEncoderBitrate(int bitrate);
+
+    private native void setEncoderPreset(String preset);
+
+    private native byte[] RGBAToI420(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
+
+    private native byte[] RGBAToNV12(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
+
+    private native int RGBASoftEncode(byte[] rgbaFrame, int width, int height, boolean flip, int rotate, long pts);
+
+    private native boolean openSoftEncoder();
+
+    private native void closeSoftEncoder();
 }

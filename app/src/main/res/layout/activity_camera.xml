@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
 
     <net.ossrs.yasea.SrsCameraView
         android:id="@+id/glsurfaceview_camera"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,14 +20,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="开始" />
+            android:text="开始"/>
 
         <Button
             android:id="@+id/swCam"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="摄像头" />
+            android:text="摄像头"/>
 
 
         <Button
@@ -35,7 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="软编码" />
+            android:text="软编码"/>
     </LinearLayout>
 
     <EditText
@@ -43,10 +43,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
-        android:text="rtmp://192.168.0.26:1935/live/test"
         android:padding="10dp"
+        android:text="rtmp://192.168.0.26:1935/live/test"
         android:textColor="#FFFFFF"
-        android:textSize="14dp" />
+        android:textSize="14dp"/>
 
-        <!--android:text="rtmp://192.168.1.118:1935/live/test"-->
+    <!--android:text="rtmp://192.168.1.118:1935/live/test"-->
 </RelativeLayout>

@@ -120,5 +120,4 @@ public class SampleTableBox extends AbstractContainerBox {
         }
         return null;
     }
-
 }

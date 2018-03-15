@@ -31,7 +31,6 @@ import java.util.Date;
 public class MediaHeaderBox extends AbstractFullBox {
     public static final String TYPE = "mdhd";
 
-
     private Date creationTime;
     private Date modificationTime;
     private long timescale;
@@ -46,20 +45,40 @@ public class MediaHeaderBox extends AbstractFullBox {
         return creationTime;
     }
 
+    public void setCreationTime(Date creationTime) {
+        this.creationTime = creationTime;
+    }
+
     public Date getModificationTime() {
         return modificationTime;
+    }
+
+    public void setModificationTime(Date modificationTime) {
+        this.modificationTime = modificationTime;
     }
 
     public long getTimescale() {
         return timescale;
     }
 
+    public void setTimescale(long timescale) {
+        this.timescale = timescale;
+    }
+
     public long getDuration() {
         return duration;
     }
 
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
+
     public String getLanguage() {
         return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     protected long getContentSize() {
@@ -72,27 +91,6 @@ public class MediaHeaderBox extends AbstractFullBox {
         contentSize += 2;
         contentSize += 2;
         return contentSize;
-
-    }
-
-    public void setCreationTime(Date creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    public void setModificationTime(Date modificationTime) {
-        this.modificationTime = modificationTime;
-    }
-
-    public void setTimescale(long timescale) {
-        this.timescale = timescale;
-    }
-
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
     }
 
     @Override
@@ -112,7 +110,6 @@ public class MediaHeaderBox extends AbstractFullBox {
         language = IsoTypeReader.readIso639(content);
         IsoTypeReader.readUInt16(content);
     }
-
 
     public String toString() {
         StringBuilder result = new StringBuilder();

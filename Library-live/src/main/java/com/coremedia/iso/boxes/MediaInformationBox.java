@@ -45,5 +45,4 @@ public class MediaInformationBox extends AbstractContainerBox {
         }
         return null;
     }
-
 }

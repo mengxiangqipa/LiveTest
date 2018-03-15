@@ -1,22 +1,20 @@
 package com.seu.magicfilter.base;
 
-
-import java.nio.FloatBuffer;
-import java.util.List;
+import android.content.Context;
+import android.opengl.GLES20;
 
 import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.OpenGLUtils;
 
-import android.content.Context;
-import android.opengl.GLES20;
-
+import java.nio.FloatBuffer;
+import java.util.List;
 
 public class MagicBaseGroupFilter extends GPUImageFilter {
     private static int[] frameBuffers = null;
     private static int[] frameBufferTextures = null;
+    protected List<GPUImageFilter> filters;
     private int frameWidth = -1;
     private int frameHeight = -1;
-    protected List<GPUImageFilter> filters;
 
     public MagicBaseGroupFilter(List<GPUImageFilter> filters) {
         this.filters = filters;
@@ -59,19 +57,19 @@ public class MagicBaseGroupFilter extends GPUImageFilter {
                 GLES20.glGenTextures(1, frameBufferTextures, i);
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, frameBufferTextures[i]);
                 GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
-                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+                        GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
                 GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+                        GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
                 GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+                        GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
                 GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+                        GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
                 GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+                        GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers[i]);
                 GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
-                    GLES20.GL_TEXTURE_2D, frameBufferTextures[i], 0);
+                        GLES20.GL_TEXTURE_2D, frameBufferTextures[i], 0);
 
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);

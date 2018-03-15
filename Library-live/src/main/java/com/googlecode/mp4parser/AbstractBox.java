@@ -56,7 +56,6 @@ public abstract class AbstractBox implements Box {
     private ByteBuffer content;
     private ByteBuffer deadBytes = null;
 
-
     protected AbstractBox(String type) {
         this.type = type;
     }
@@ -100,13 +99,15 @@ public abstract class AbstractBox implements Box {
      * @throws IOException in case of an I/O error.
      */
     @DoNotParseDetail
-    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
+    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser
+            boxParser) throws IOException {
         if (readableByteChannel instanceof FileChannel && contentSize > MEM_MAP_THRESHOLD) {
             // todo: if I map this here delayed I could use transferFrom/transferTo in the getBox method
             // todo: potentially this could speed up writing.
             //
             // It's quite expensive to map a file into the memory. Just do it when the box is larger than a MB.
-            content = ((FileChannel) readableByteChannel).map(FileChannel.MapMode.READ_ONLY, ((FileChannel) readableByteChannel).position(), contentSize);
+            content = ((FileChannel) readableByteChannel).map(FileChannel.MapMode.READ_ONLY, ((FileChannel)
+                    readableByteChannel).position(), contentSize);
             ((FileChannel) readableByteChannel).position(((FileChannel) readableByteChannel).position() + contentSize);
         } else {
             assert contentSize < Integer.MAX_VALUE;
@@ -115,7 +116,6 @@ public abstract class AbstractBox implements Box {
         if (isParsed() == false) {
             parseDetails();
         }
-
     }
 
     public void getBox(WritableByteChannel os) throws IOException {
@@ -136,7 +136,6 @@ public abstract class AbstractBox implements Box {
         bb.rewind();
         os.write(bb);
     }
-
 
     /**
      * Parses the raw content of the box. It surrounds the actual parsing
@@ -164,7 +163,6 @@ public abstract class AbstractBox implements Box {
     protected void setDeadBytes(ByteBuffer newDeadBytes) {
         deadBytes = newDeadBytes;
     }
-
 
     /**
      * Gets the full size of the box including header and content.
@@ -214,7 +212,6 @@ public abstract class AbstractBox implements Box {
         return content == null;
     }
 
-
     /**
      * Verifies that a box can be reconstructed byte-exact after parsing.
      *
@@ -232,7 +229,6 @@ public abstract class AbstractBox implements Box {
         }
         content.rewind();
         bb.rewind();
-
 
         if (content.remaining() != bb.remaining()) {
             LOG.severe(this.getType() + ": remaining differs " + content.remaining() + " vs. " + bb.remaining());
@@ -254,11 +250,11 @@ public abstract class AbstractBox implements Box {
             }
         }
         return true;
-
     }
 
     private boolean isSmallBox() {
-        return (content == null ? (getContentSize() + (deadBytes != null ? deadBytes.limit() : 0) + 8) : content.limit()) < 1L << 32;
+        return (content == null ? (getContentSize() + (deadBytes != null ? deadBytes.limit() : 0) + 8) : content
+                .limit()) < 1L << 32;
     }
 
     private void getHeader(ByteBuffer byteBuffer) {
@@ -273,7 +269,5 @@ public abstract class AbstractBox implements Box {
         if (UserBox.TYPE.equals(getType())) {
             byteBuffer.put(getUserType());
         }
-
-
     }
 }

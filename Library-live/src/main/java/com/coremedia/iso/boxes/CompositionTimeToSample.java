@@ -51,6 +51,30 @@ public class CompositionTimeToSample extends AbstractFullBox {
         super(TYPE);
     }
 
+    /**
+     * Decompresses the list of entries and returns the list of composition times.
+     *
+     * @return decoding time per sample
+     */
+    public static int[] blowupCompositionTimes(List<CompositionTimeToSample.Entry> entries) {
+        long numOfSamples = 0;
+        for (CompositionTimeToSample.Entry entry : entries) {
+            numOfSamples += entry.getCount();
+        }
+        assert numOfSamples <= Integer.MAX_VALUE;
+        int[] decodingTime = new int[(int) numOfSamples];
+
+        int current = 0;
+
+        for (CompositionTimeToSample.Entry entry : entries) {
+            for (int i = 0; i < entry.getCount(); i++) {
+                decodingTime[current++] = entry.getOffset();
+            }
+        }
+
+        return decodingTime;
+    }
+
     protected long getContentSize() {
         return 8 + 8 * entries.size();
     }
@@ -83,9 +107,7 @@ public class CompositionTimeToSample extends AbstractFullBox {
             IsoTypeWriter.writeUInt32(byteBuffer, entry.getCount());
             byteBuffer.putInt(entry.getOffset());
         }
-
     }
-
 
     public static class Entry {
         int count;
@@ -100,12 +122,12 @@ public class CompositionTimeToSample extends AbstractFullBox {
             return count;
         }
 
-        public int getOffset() {
-            return offset;
-        }
-
         public void setCount(int count) {
             this.count = count;
+        }
+
+        public int getOffset() {
+            return offset;
         }
 
         public void setOffset(int offset) {
@@ -120,31 +142,4 @@ public class CompositionTimeToSample extends AbstractFullBox {
                     '}';
         }
     }
-
-
-    /**
-     * Decompresses the list of entries and returns the list of composition times.
-     *
-     * @return decoding time per sample
-     */
-    public static int[] blowupCompositionTimes(List<CompositionTimeToSample.Entry> entries) {
-        long numOfSamples = 0;
-        for (CompositionTimeToSample.Entry entry : entries) {
-            numOfSamples += entry.getCount();
-        }
-        assert numOfSamples <= Integer.MAX_VALUE;
-        int[] decodingTime = new int[(int) numOfSamples];
-
-        int current = 0;
-
-
-        for (CompositionTimeToSample.Entry entry : entries) {
-            for (int i = 0; i < entry.getCount(); i++) {
-                decodingTime[current++] = entry.getOffset();
-            }
-        }
-
-        return decodingTime;
-    }
-
 }

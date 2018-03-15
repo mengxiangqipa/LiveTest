@@ -20,11 +20,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.github.faucamp.simplertmp.RtmpHandler;
-import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.MagicFilterType;
 import com.seu.magicfilter.utils.OpenGLUtils;
 
-import net.ossrs.yasea.SrsCameraView;
 import net.ossrs.yasea.SrsEncodeHandler;
 import net.ossrs.yasea.SrsEncoder;
 import net.ossrs.yasea.SrsPublisherTestNodisplay;
@@ -50,6 +48,15 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
     private EditText mRempUrlEt;
     private SrsPublisherTestNodisplay mPublisher;
     private String rtmpUrl;
+    private Camera mCamera;
+    private int mPreviewWidth = 1280;
+    private int mPreviewHeight = 720;
+    private boolean mIsTorchOn = false;
+    private int mPreviewRotation = 90;
+    private SurfaceTexture surfaceTexture;
+    private byte[] callbackBuffer;
+    private int mOESTextureId = OpenGLUtils.NO_TEXTURE;
+    private int mCamId = -1;
 
     /**
      * @param savedInstanceState
@@ -152,15 +159,6 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
         }
     }
 
-    private Camera mCamera;
-    private int mPreviewWidth = 1280;
-    private int mPreviewHeight = 720;
-    private boolean mIsTorchOn = false;
-    private int mPreviewRotation = 90;
-    private SurfaceTexture surfaceTexture;
-    private byte[] callbackBuffer;
-    private int mOESTextureId = OpenGLUtils.NO_TEXTURE;
-
     public boolean startCamera() {
         if (mCamera == null) {
             mCamera = openCamera();
@@ -252,8 +250,6 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
             }
         }
     }
-
-    private int mCamId = -1;
 
     private Camera openCamera() {
         Camera camera;

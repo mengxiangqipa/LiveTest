@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
 
     <EditText
         android:id="@+id/url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="rtmp://192.168.0.29/live/test" />
+        android:text="rtmp://192.168.0.29/live/test"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,17 +20,17 @@
             android:id="@+id/start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Play" />
+            android:text="Play"/>
 
         <Button
             android:id="@+id/stop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop" />
+            android:text="Stop"/>
     </LinearLayout>
 
     <io.vov.vitamio.widget.VideoView
         android:id="@+id/surface_view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 </LinearLayout>

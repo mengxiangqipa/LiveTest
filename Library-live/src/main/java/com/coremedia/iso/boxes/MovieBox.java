@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.googlecode.mp4parser.AbstractBox;
 import com.googlecode.mp4parser.AbstractContainerBox;
 
@@ -36,7 +35,6 @@ public class MovieBox extends AbstractContainerBox {
     public int getTrackCount() {
         return getBoxes(TrackBox.class).size();
     }
-
 
     /**
      * Returns the track numbers associated with this <code>MovieBox</code>.
@@ -63,5 +61,4 @@ public class MovieBox extends AbstractContainerBox {
         }
         return null;
     }
-
 }

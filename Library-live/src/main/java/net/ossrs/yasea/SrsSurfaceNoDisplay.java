@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
@@ -25,7 +24,6 @@ import com.seu.magicfilter.utils.OpenGLUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -41,8 +39,11 @@ import javax.microedition.khronos.opengles.GL10;
  *         created at  2017/12/27  16:45
  *         SurfaceTexture需要硬件加速
  */
-public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListener
-{
+public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListener {
+    private final Object writeLock = new Object();
+    ByteArrayOutputStream baos;
+    byte[] rawImage;
+    Bitmap bitmap;
     private GPUImageFilter magicFilter;
     private SurfaceTexture surfaceTexture;
     private int mOESTextureId = OpenGLUtils.NO_TEXTURE;
@@ -63,21 +64,19 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
     private int mPreviewRotation = 90;
     private int mPreviewOrientation = Configuration.ORIENTATION_PORTRAIT;
     private Thread worker;
-    private final Object writeLock = new Object();
     private ConcurrentLinkedQueue<IntBuffer> mGLIntBufferCache = new ConcurrentLinkedQueue<>();
     private PreviewCallback mPrevCb;
     private Context context;
     private byte[] callbackBuffer;
     private IntBuffer mGLFboBuffer;
-    public SrsSurfaceNoDisplay(Context context)
-    {
+
+    public SrsSurfaceNoDisplay(Context context) {
         this.context = context;
         Log.e("yy", "SrsSurfaceNoDisplay");
         init(context);
     }
 
-    public void init(@NonNull Context context)
-    {
+    public void init(@NonNull Context context) {
         GLES20.glDisable(GL10.GL_DITHER);
         GLES20.glClearColor(0, 0, 0, 0);
 
@@ -90,21 +89,17 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         surfaceTexture.setOnFrameAvailableListener(this);
 
         // For camera preview on activity creation
-        if (mCamera != null)
-        {
-            try
-            {
+        if (mCamera != null) {
+            try {
                 mCamera.setPreviewTexture(surfaceTexture);
-            } catch (IOException ioe)
-            {
+            } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
         }
     }
 
     //    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height)
-    {
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e("yy", "onSurfaceChanged:" + "onSurfaceChanged");
         GLES20.glViewport(0, 0, width, height);
         mSurfaceWidth = width;
@@ -113,28 +108,23 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 
         mOutputAspectRatio = width > height ? (float) width / height : (float) height / width;
         float aspectRatio = mOutputAspectRatio / mInputAspectRatio;
-        if (width > height)
-        {
+        if (width > height) {
             Matrix.orthoM(mProjectionMatrix, 0, -1.0f, 1.0f, -aspectRatio, aspectRatio, -1.0f, 1.0f);
-        } else
-        {
+        } else {
             Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
         }
     }
 
-    private void test(float[] mSurfaceMatrix)
-    {
+    private void test(float[] mSurfaceMatrix) {
         if (null != mSurfaceMatrix)
-            for (int i = 0; i < mSurfaceMatrix.length; i++)
-            {
+            for (int i = 0; i < mSurfaceMatrix.length; i++) {
                 Log.e("yy", "test" + i + ":" + mSurfaceMatrix[i] + "   " + Thread.currentThread());
             }
     }
 
     //    @Override
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void onDrawFrame(GL10 gl)
-    {
+    public void onDrawFrame(GL10 gl) {
 //        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 //        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 //
@@ -153,32 +143,28 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         magicFilter.setTextureTransformMatrix(mTransformMatrix);
 
         int a = magicFilter.onDrawFrame(mOESTextureId);
-        Log.e("yy", "onDrawFrame：返回结果：" + a+"  mIsEncoding:"+mIsEncoding+"  magicFilter.getGLFboBuffer():"+magicFilter.getGLFboBuffer().hasArray());
-        if (mIsEncoding)
-        {
+        Log.e("yy", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer():" +
+                magicFilter.getGLFboBuffer().hasArray());
+        if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
-            synchronized (writeLock)
-            {
+            synchronized (writeLock) {
                 writeLock.notifyAll();
             }
         }
     }
 
-    public void setPreviewCallback(PreviewCallback cb)
-    {
+    public void setPreviewCallback(PreviewCallback cb) {
         mPrevCb = cb;
     }
 
-    public int[] setPreviewResolution(int width, int height)
-    {
+    public int[] setPreviewResolution(int width, int height) {
 //        getHolder().setFixedSize(width, height);
 
         mCamera = openCamera();
         mPreviewWidth = width;
         mPreviewHeight = height;
         Camera.Size rs = adaptPreviewResolution(mCamera.new Size(width, height));
-        if (rs != null)
-        {
+        if (rs != null) {
             mPreviewWidth = rs.width;
             mPreviewHeight = rs.height;
         }
@@ -191,25 +177,19 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         return new int[]{mPreviewWidth, mPreviewHeight};
     }
 
-    public boolean setFilter(final MagicFilterType type)
-    {
-        if (mCamera == null)
-        {
+    public boolean setFilter(final MagicFilterType type) {
+        if (mCamera == null) {
             return false;
         }
 
-        new Thread(new Runnable()
-        {
+        new Thread(new Runnable() {
             @Override
-            public void run()
-            {
-                if (magicFilter != null)
-                {
+            public void run() {
+                if (magicFilter != null) {
                     magicFilter.destroy();
                 }
                 magicFilter = MagicFilterFactory.initFilters(type);
-                if (magicFilter != null)
-                {
+                if (magicFilter != null) {
                     magicFilter.init(context.getApplicationContext());
                     magicFilter.onInputSizeChanged(mPreviewWidth, mPreviewHeight);
                     magicFilter.onDisplaySizeChanged(mSurfaceWidth, mSurfaceHeight);
@@ -221,15 +201,11 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         return true;
     }
 
-    private void deleteTextures()
-    {
-        if (mOESTextureId != OpenGLUtils.NO_TEXTURE)
-        {
-            new Thread(new Runnable()
-            {
+    private void deleteTextures() {
+        if (mOESTextureId != OpenGLUtils.NO_TEXTURE) {
+            new Thread(new Runnable() {
                 @Override
-                public void run()
-                {
+                public void run() {
                     GLES20.glDeleteTextures(1, new int[]{mOESTextureId}, 0);
                     mOESTextureId = OpenGLUtils.NO_TEXTURE;
                 }
@@ -237,56 +213,42 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         }
     }
 
-    public void setCameraId(int id)
-    {
-        mCamId = id;
-        setPreviewOrientation(mPreviewOrientation);
-    }
-
-    public void setPreviewOrientation(int orientation)
-    {
+    public void setPreviewOrientation(int orientation) {
         mPreviewOrientation = orientation;
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(mCamId, info);
-        if (orientation == Configuration.ORIENTATION_PORTRAIT)
-        {
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-            {
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 mPreviewRotation = info.orientation % 360;
                 mPreviewRotation = (360 - mPreviewRotation) % 360;  // compensate the mirror
-            } else
-            {
+            } else {
                 mPreviewRotation = (info.orientation + 360) % 360;
             }
-        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE)
-        {
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-            {
+        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 mPreviewRotation = (info.orientation + 90) % 360;
                 mPreviewRotation = (360 - mPreviewRotation) % 360;  // compensate the mirror
-            } else
-            {
+            } else {
                 mPreviewRotation = (info.orientation + 270) % 360;
             }
         }
     }
 
-    public int getCameraId()
-    {
+    public int getCameraId() {
         return mCamId;
     }
 
-    public void enableEncoding()
-    {
-        worker = new Thread(new Runnable()
-        {
+    public void setCameraId(int id) {
+        mCamId = id;
+        setPreviewOrientation(mPreviewOrientation);
+    }
+
+    public void enableEncoding() {
+        worker = new Thread(new Runnable() {
             @Override
-            public void run()
-            {
-                while (!Thread.interrupted())
-                {
-                    while (!mGLIntBufferCache.isEmpty())
-                    {
+            public void run() {
+                while (!Thread.interrupted()) {
+                    while (!mGLIntBufferCache.isEmpty()) {
                         IntBuffer picture = mGLIntBufferCache.poll();
                         Log.e("yy", "enableEncoding:picture==null:" + (picture == null));
                         mGLPreviewBuffer.asIntBuffer().put(picture.array());
@@ -296,14 +258,11 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
                     }
 
                     // Waiting for next frame
-                    synchronized (writeLock)
-                    {
-                        try
-                        {
+                    synchronized (writeLock) {
+                        try {
                             // isEmpty() may take some time, so we set timeout to detect next frame
                             writeLock.wait(500);
-                        } catch (InterruptedException ie)
-                        {
+                        } catch (InterruptedException ie) {
                             worker.interrupt();
                         }
                     }
@@ -314,19 +273,15 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         mIsEncoding = true;
     }
 
-    public void disableEncoding()
-    {
+    public void disableEncoding() {
         mIsEncoding = false;
         mGLIntBufferCache.clear();
 
-        if (worker != null)
-        {
+        if (worker != null) {
             worker.interrupt();
-            try
-            {
+            try {
                 worker.join();
-            } catch (InterruptedException e)
-            {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
                 worker.interrupt();
             }
@@ -334,13 +289,10 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         }
     }
 
-    public boolean startCamera()
-    {
-        if (mCamera == null)
-        {
+    public boolean startCamera() {
+        if (mCamera == null) {
             mCamera = openCamera();
-            if (mCamera == null)
-            {
+            if (mCamera == null) {
                 return false;
             }
         }
@@ -356,32 +308,24 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
 
         List<String> supportedFocusModes = params.getSupportedFocusModes();
-        if (supportedFocusModes != null && !supportedFocusModes.isEmpty())
-        {
-            if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
-            {
+        if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+            if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO))
-            {
+            } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                 mCamera.autoFocus(null);
-            } else
-            {
+            } else {
                 params.setFocusMode(supportedFocusModes.get(0));
             }
         }
 
         List<String> supportedFlashModes = params.getSupportedFlashModes();
-        if (supportedFlashModes != null && !supportedFlashModes.isEmpty())
-        {
-            if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
-            {
-                if (mIsTorchOn)
-                {
+        if (supportedFlashModes != null && !supportedFlashModes.isEmpty()) {
+            if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
+                if (mIsTorchOn) {
                     params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                 }
-            } else
-            {
+            } else {
                 params.setFlashMode(supportedFlashModes.get(0));
             }
         }
@@ -390,22 +334,18 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 
         mCamera.setDisplayOrientation(mPreviewRotation);
 
-        try
-        {
+        try {
             mCamera.setPreviewTexture(surfaceTexture);
-        } catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
 //        callbackBuffer = new byte[1280 * 720];
 //        mCamera.addCallbackBuffer(callbackBuffer);
         final IntBuffer mGLFboBuffer = IntBuffer.allocate(1280 * 720);
-        mCamera.setPreviewCallback(new Camera.PreviewCallback()
-        {
+        mCamera.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
-            public void onPreviewFrame(byte[] data, Camera camera)
-            {
+            public void onPreviewFrame(byte[] data, Camera camera) {
                 Log.e("yy", "setPreviewCallback：" + (data == null) + " data.lenth:" + data.length);
                 GLES20.glReadPixels(0, 0, 1280, 720, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
                         mGLFboBuffer);
@@ -413,7 +353,6 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 //                mGLFboBuffer.put(data.)
 //                }
 //                mGLIntBufferCache.add(mGLFboBuffer);
-
 
 //                runInPreviewFrame(data, camera);
                 onDrawFrame(null);
@@ -434,12 +373,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         return true;
     }
 
-    ByteArrayOutputStream baos;
-    byte[] rawImage;
-    Bitmap bitmap;
-
-    public void runInPreviewFrame(byte[] data, Camera camera)
-    {
+    public void runInPreviewFrame(byte[] data, Camera camera) {
 //        camera.setOneShotPreviewCallback(null);
         //处理data
         Camera.Size previewSize = camera.getParameters().getPreviewSize();//获取尺寸,格式转换的时候要用到
@@ -462,12 +396,10 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length, options);
     }
 
-    public void stopCamera()
-    {
+    public void stopCamera() {
         disableEncoding();
 
-        if (mCamera != null)
-        {
+        if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
             mCamera.release();
@@ -475,35 +407,27 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         }
     }
 
-    private Camera openCamera()
-    {
+    private Camera openCamera() {
         Camera camera;
-        if (mCamId < 0)
-        {
+        if (mCamId < 0) {
             Camera.CameraInfo info = new Camera.CameraInfo();
             int numCameras = Camera.getNumberOfCameras();
             int frontCamId = -1;
             int backCamId = -1;
-            for (int i = 0; i < numCameras; i++)
-            {
+            for (int i = 0; i < numCameras; i++) {
                 Camera.getCameraInfo(i, info);
-                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-                {
+                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     backCamId = i;
-                } else if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-                {
+                } else if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                     frontCamId = i;
                     break;
                 }
             }
-            if (frontCamId != -1)
-            {
+            if (frontCamId != -1) {
                 mCamId = frontCamId;
-            } else if (backCamId != -1)
-            {
+            } else if (backCamId != -1) {
                 mCamId = backCamId;
-            } else
-            {
+            } else {
                 mCamId = 0;
             }
         }
@@ -511,20 +435,16 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         return camera;
     }
 
-    private Camera.Size adaptPreviewResolution(Camera.Size resolution)
-    {
+    private Camera.Size adaptPreviewResolution(Camera.Size resolution) {
         float diff = 100f;
         float xdy = (float) resolution.width / (float) resolution.height;
         Camera.Size best = null;
-        for (Camera.Size size : mCamera.getParameters().getSupportedPreviewSizes())
-        {
-            if (size.equals(resolution))
-            {
+        for (Camera.Size size : mCamera.getParameters().getSupportedPreviewSizes()) {
+            if (size.equals(resolution)) {
                 return size;
             }
             float tmp = Math.abs(((float) size.width / (float) size.height) - xdy);
-            if (tmp < diff)
-            {
+            if (tmp < diff) {
                 diff = tmp;
                 best = size;
             }
@@ -532,18 +452,14 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         return best;
     }
 
-    private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges)
-    {
+    private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {
         expectedFps *= 1000;
         int[] closestRange = fpsRanges.get(0);
         int measure = Math.abs(closestRange[0] - expectedFps) + Math.abs(closestRange[1] - expectedFps);
-        for (int[] range : fpsRanges)
-        {
-            if (range[0] <= expectedFps && range[1] >= expectedFps)
-            {
+        for (int[] range : fpsRanges) {
+            if (range[0] <= expectedFps && range[1] >= expectedFps) {
                 int curMeasure = Math.abs(range[0] - expectedFps) + Math.abs(range[1] - expectedFps);
-                if (curMeasure < measure)
-                {
+                if (curMeasure < measure) {
                     closestRange = range;
                     measure = curMeasure;
                 }
@@ -553,16 +469,14 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
     }
 
     @Override
-    public void onFrameAvailable(SurfaceTexture surfaceTexture)
-    {
+    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         Log.e("yy", "22onFrameAvailable");
 //        surfaceTexture.updateTexImage();
 //        init(context);
 //        mCamera.addCallbackBuffer(callbackBuffer);
     }
 
-    public interface PreviewCallback
-    {
+    public interface PreviewCallback {
         void onGetRgbaFrame(byte[] data, int width, int height);
     }
 }

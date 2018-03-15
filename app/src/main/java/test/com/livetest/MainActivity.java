@@ -1,8 +1,8 @@
 package test.com.livetest;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
@@ -27,13 +27,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.push_stream_btn:
-                startActivity(new Intent(this,CameraActivity.class));
+                startActivity(new Intent(this, CameraActivity.class));
                 break;
             case R.id.push_stream2_btn:
-                startActivity(new Intent(this,CameraNoDisplayActivity.class));
+                startActivity(new Intent(this, CameraNoDisplayActivity.class));
                 break;
             case R.id.play_stream_btn:
-                startActivity(new Intent(this,PlayerActivity.class));
+                startActivity(new Intent(this, PlayerActivity.class));
                 break;
         }
     }

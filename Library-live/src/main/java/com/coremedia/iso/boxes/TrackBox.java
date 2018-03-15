@@ -55,9 +55,7 @@ public class TrackBox extends AbstractContainerBox {
             }
         }
         return null;
-
     }
-
 
     public MediaBox getMediaBox() {
         for (Box box : boxes) {
@@ -67,5 +65,4 @@ public class TrackBox extends AbstractContainerBox {
         }
         return null;
     }
-
 }

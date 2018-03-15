@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.coremedia.iso.IsoFile;
 import com.coremedia.iso.IsoTypeReader;
 import com.coremedia.iso.IsoTypeWriter;
@@ -43,11 +42,15 @@ public class HandlerBox extends AbstractFullBox {
 
     static {
         HashMap<String, String> hm = new HashMap<String, String>();
-        hm.put("odsm", "ObjectDescriptorStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
-        hm.put("crsm", "ClockReferenceStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
-        hm.put("sdsm", "SceneDescriptionStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
+        hm.put("odsm", "ObjectDescriptorStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND " +
+                "AUDIO");
+        hm.put("crsm", "ClockReferenceStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND " +
+                "AUDIO");
+        hm.put("sdsm", "SceneDescriptionStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND " +
+                "AUDIO");
         hm.put("m7sm", "MPEG7Stream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
-        hm.put("ocsm", "ObjectContentInfoStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
+        hm.put("ocsm", "ObjectContentInfoStream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND " +
+                "AUDIO");
         hm.put("ipsm", "IPMP Stream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
         hm.put("mjsm", "MPEG-J Stream - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
         hm.put("mdir", "Apple Meta Data iTunes Reader");
@@ -57,10 +60,10 @@ public class HandlerBox extends AbstractFullBox {
         hm.put("soun", "Sound Track");
         hm.put("hint", "Hint Track");
         hm.put("appl", "Apple specific");
-        hm.put("meta", "Timed Metadata track - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND AUDIO");
+        hm.put("meta", "Timed Metadata track - defined in ISO/IEC JTC1/SC29/WG11 - CODING OF MOVING PICTURES AND " +
+                "AUDIO");
 
         readableTypes = Collections.unmodifiableMap(hm);
-
     }
 
     private String handlerType;
@@ -78,6 +81,14 @@ public class HandlerBox extends AbstractFullBox {
         return handlerType;
     }
 
+    public void setHandlerType(String handlerType) {
+        this.handlerType = handlerType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     /**
      * You are required to add a '\0' string termination by yourself.
      *
@@ -85,14 +96,6 @@ public class HandlerBox extends AbstractFullBox {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setHandlerType(String handlerType) {
-        this.handlerType = handlerType;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getHumanReadableTrackType() {
@@ -105,7 +108,6 @@ public class HandlerBox extends AbstractFullBox {
         } else {
             return 24 + Utf8.utf8StringLengthInBytes(name);
         }
-
     }
 
     @Override

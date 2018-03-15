@@ -23,6 +23,8 @@ package com.googlecode.mp4parser.h264;
 import java.nio.ShortBuffer;
 
 public class Debug {
+    public final static boolean debug = false;
+
     public final static void print8x8(int[] output) {
         int i = 0;
         for (int x = 0; x < 8; x++) {
@@ -68,8 +70,6 @@ public class Debug {
     public static void trace(String format, Object... args) {
         // System.out.printf("> " + format + "\n", args);
     }
-
-    public final static boolean debug = false;
 
     public static void print(int i) {
         if (debug)

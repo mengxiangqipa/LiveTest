@@ -31,7 +31,6 @@ public class DateHelper {
         return new Date((secondsSince - 2082844800L) * 1000L);
     }
 
-
     /**
      * Converts a date as long to a mac date as long
      *

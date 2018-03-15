@@ -39,12 +39,12 @@ public class StaticChunkOffsetBox extends ChunkOffsetBox {
         return chunkOffsets;
     }
 
-    protected long getContentSize() {
-        return 8 + chunkOffsets.length * 4;
-    }
-
     public void setChunkOffsets(long[] chunkOffsets) {
         this.chunkOffsets = chunkOffsets;
+    }
+
+    protected long getContentSize() {
+        return 8 + chunkOffsets.length * 4;
     }
 
     @Override
@@ -55,7 +55,6 @@ public class StaticChunkOffsetBox extends ChunkOffsetBox {
         for (int i = 0; i < entryCount; i++) {
             chunkOffsets[i] = IsoTypeReader.readUInt32(content);
         }
-
     }
 
     @Override
@@ -66,6 +65,4 @@ public class StaticChunkOffsetBox extends ChunkOffsetBox {
             IsoTypeWriter.writeUInt32(byteBuffer, chunkOffset);
         }
     }
-
-
 }

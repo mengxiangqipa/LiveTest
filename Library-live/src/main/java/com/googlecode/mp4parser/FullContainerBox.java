@@ -34,12 +34,12 @@ import java.util.logging.Logger;
  * Abstract base class for a full iso box only containing ither boxes.
  */
 public abstract class FullContainerBox extends AbstractFullBox implements ContainerBox {
-    protected List<Box> boxes = new LinkedList<Box>();
     private static Logger LOG = Logger.getLogger(FullContainerBox.class.getName());
+    protected List<Box> boxes = new LinkedList<Box>();
     BoxParser boxParser;
 
-    public void setBoxes(List<Box> boxes) {
-        this.boxes = new LinkedList<Box>(boxes);
+    public FullContainerBox(String type) {
+        super(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -82,19 +82,19 @@ public abstract class FullContainerBox extends AbstractFullBox implements Contai
         boxes.remove(b);
     }
 
-    public FullContainerBox(String type) {
-        super(type);
-    }
-
     public List<Box> getBoxes() {
         return boxes;
     }
 
+    public void setBoxes(List<Box> boxes) {
+        this.boxes = new LinkedList<Box>(boxes);
+    }
+
     @Override
-    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
+    public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser
+            boxParser) throws IOException {
         this.boxParser = boxParser;
         super.parse(readableByteChannel, header, contentSize, boxParser);
-
     }
 
     @Override
@@ -131,7 +131,6 @@ public abstract class FullContainerBox extends AbstractFullBox implements Contai
         return buffer.toString();
     }
 
-
     protected void getContent(ByteBuffer byteBuffer) {
         writeVersionAndFlags(byteBuffer);
         writeChildBoxes(byteBuffer);
@@ -146,7 +145,6 @@ public abstract class FullContainerBox extends AbstractFullBox implements Contai
                 // cannot happen since my WritableByteChannel won't throw any excpetion
                 throw new RuntimeException("Cannot happen.", e);
             }
-
         }
     }
 

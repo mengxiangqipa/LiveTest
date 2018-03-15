@@ -24,13 +24,12 @@ import java.nio.ByteBuffer;
  * A user specifc box. See ISO/IEC 14496-12 for details.
  */
 public class UserBox extends AbstractBox {
-    byte[] data;
     public static final String TYPE = "uuid";
+    byte[] data;
 
     public UserBox(byte[] userType) {
         super(TYPE, userType);
     }
-
 
     protected long getContentSize() {
         return data.length;
@@ -41,7 +40,6 @@ public class UserBox extends AbstractBox {
                 ";userType=" + new String(getUserType()) +
                 ";contentLength=" + data.length + "]";
     }
-
 
     public byte[] getData() {
         return data;

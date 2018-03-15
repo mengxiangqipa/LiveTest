@@ -1,13 +1,5 @@
 package com.seu.magicfilter.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.Buffer;
-
-import javax.microedition.khronos.opengles.GL10;
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -16,6 +8,14 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class OpenGLUtils {
     public static final int NO_TEXTURE = -1;
@@ -27,7 +27,7 @@ public class OpenGLUtils {
     }
 
     public static int loadTexture(Bitmap img, int usedTexId, boolean recyled) {
-        if(img == null)
+        if (img == null)
             return NO_TEXTURE;
         int textures[] = new int[1];
         if (usedTexId == NO_TEXTURE) {
@@ -48,13 +48,13 @@ public class OpenGLUtils {
             GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, img);
             textures[0] = usedTexId;
         }
-        if(recyled)
+        if (recyled)
             img.recycle();
         return textures[0];
     }
 
     public static int loadTexture(Buffer data, int width, int height, int usedTexId) {
-        if(data == null)
+        if (data == null)
             return NO_TEXTURE;
         int textures[] = new int[1];
         if (usedTexId == NO_TEXTURE) {
@@ -80,7 +80,7 @@ public class OpenGLUtils {
     }
 
     public static int loadTexture(Buffer data, int width, int height, int usedTexId, int type) {
-        if(data == null)
+        if (data == null)
             return NO_TEXTURE;
         int textures[] = new int[1];
         if (usedTexId == NO_TEXTURE) {
@@ -105,15 +105,15 @@ public class OpenGLUtils {
         return textures[0];
     }
 
-    public static int loadTexture(final Context context, final String name){
+    public static int loadTexture(final Context context, final String name) {
         final int[] textureHandle = new int[1];
 
         GLES20.glGenTextures(1, textureHandle, 0);
 
-        if (textureHandle[0] != 0){
+        if (textureHandle[0] != 0) {
 
             // Read in the resource
-            final Bitmap bitmap = getImageFromAssetsFile(context,name);
+            final Bitmap bitmap = getImageFromAssetsFile(context, name);
 
             // Bind to the texture in OpenGL
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
@@ -130,24 +130,24 @@ public class OpenGLUtils {
             bitmap.recycle();
         }
 
-        if (textureHandle[0] == 0){
+        if (textureHandle[0] == 0) {
             throw new RuntimeException("Error loading texture.");
         }
 
         return textureHandle[0];
     }
 
-    private static Bitmap getImageFromAssetsFile(Context context,String fileName){
+    private static Bitmap getImageFromAssetsFile(Context context, String fileName) {
         Bitmap image = null;
         AssetManager am = context.getResources().getAssets();
-        try{
+        try {
             InputStream is = am.open(fileName);
             image = BitmapFactory.decodeStream(is);
             is.close();
-              }catch (IOException e){
-              e.printStackTrace();
-          }
-          return image;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return image;
     }
 
     public static int loadProgram(String strVSource, String strFSource) {
@@ -193,12 +193,12 @@ public class OpenGLUtils {
         return iShader;
     }
 
-    public static int getExternalOESTextureID(){
+    public static int getExternalOESTextureID() {
         int[] texture = new int[1];
         GLES20.glGenTextures(1, texture, 0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture[0]);
         GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GL10.GL_TEXTURE_MIN_FILTER,GL10.GL_LINEAR);
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
         GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
                 GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
@@ -208,7 +208,7 @@ public class OpenGLUtils {
         return texture[0];
     }
 
-    public static String readShaderFromRawResource(Context context, int resourceId){
+    public static String readShaderFromRawResource(Context context, int resourceId) {
         final InputStream inputStream = context.getResources().openRawResource(resourceId);
         final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
         final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -216,13 +216,12 @@ public class OpenGLUtils {
         String nextLine;
         final StringBuilder body = new StringBuilder();
 
-        try{
-            while ((nextLine = bufferedReader.readLine()) != null){
+        try {
+            while ((nextLine = bufferedReader.readLine()) != null) {
                 body.append(nextLine);
                 body.append('\n');
             }
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             return null;
         }
         return body.toString();

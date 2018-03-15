@@ -40,14 +40,55 @@ public class SampleDependencyTypeBox extends AbstractFullBox {
 
     private List<Entry> entries = new ArrayList<Entry>();
 
+    public SampleDependencyTypeBox() {
+        super(TYPE);
+    }
+
+    @Override
+    protected long getContentSize() {
+        return 4 + entries.size();
+    }
+
+    @Override
+    protected void getContent(ByteBuffer byteBuffer) {
+        writeVersionAndFlags(byteBuffer);
+        for (Entry entry : entries) {
+            IsoTypeWriter.writeUInt8(byteBuffer, entry.value);
+        }
+    }
+
+    @Override
+    public void _parseDetails(ByteBuffer content) {
+        parseVersionAndFlags(content);
+        while (content.remaining() > 0) {
+            entries.add(new Entry(IsoTypeReader.readUInt8(content)));
+        }
+    }
+
+    public List<Entry> getEntries() {
+        return entries;
+    }
+
+    public void setEntries(List<Entry> entries) {
+        this.entries = entries;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SampleDependencyTypeBox");
+        sb.append("{entries=").append(entries);
+        sb.append('}');
+        return sb.toString();
+    }
+
     public static class Entry {
+
+        private int value;
 
         public Entry(int value) {
             this.value = value;
         }
-
-        private int value;
-
 
         public int getReserved() {
             return (value >> 6) & 0x03;
@@ -90,47 +131,5 @@ public class SampleDependencyTypeBox extends AbstractFullBox {
                     ", sampleHasRedundancy=" + getSampleHasRedundancy() +
                     '}';
         }
-    }
-
-    public SampleDependencyTypeBox() {
-        super(TYPE);
-    }
-
-    @Override
-    protected long getContentSize() {
-        return 4 + entries.size();
-    }
-
-    @Override
-    protected void getContent(ByteBuffer byteBuffer) {
-        writeVersionAndFlags(byteBuffer);
-        for (Entry entry : entries) {
-            IsoTypeWriter.writeUInt8(byteBuffer, entry.value);
-        }
-    }
-
-    @Override
-    public void _parseDetails(ByteBuffer content) {
-        parseVersionAndFlags(content);
-        while (content.remaining() > 0) {
-            entries.add(new Entry(IsoTypeReader.readUInt8(content)));
-        }
-    }
-
-    public List<Entry> getEntries() {
-        return entries;
-    }
-
-    public void setEntries(List<Entry> entries) {
-        this.entries = entries;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SampleDependencyTypeBox");
-        sb.append("{entries=").append(entries);
-        sb.append('}');
-        return sb.toString();
     }
 }

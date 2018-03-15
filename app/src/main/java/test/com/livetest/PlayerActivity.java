@@ -50,6 +50,4 @@ public class PlayerActivity extends Activity implements View.OnClickListener {
                 break;
         }
     }
-
-
 }

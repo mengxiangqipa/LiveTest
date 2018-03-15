@@ -32,5 +32,4 @@ public class DataInformationBox extends AbstractContainerBox {
     public DataInformationBox() {
         super(TYPE);
     }
-
 }

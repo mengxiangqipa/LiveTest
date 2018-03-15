@@ -23,7 +23,6 @@ import com.googlecode.mp4parser.AbstractBox;
 import com.googlecode.mp4parser.annotations.DoNotParseDetail;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,7 +52,6 @@ public class FileTypeBox extends AbstractBox {
 
     protected long getContentSize() {
         return 8 + compatibleBrands.size() * 4;
-
     }
 
     @Override
@@ -74,7 +72,6 @@ public class FileTypeBox extends AbstractBox {
         for (String compatibleBrand : compatibleBrands) {
             byteBuffer.put(IsoFile.fourCCtoBytes(compatibleBrand));
         }
-
     }
 
     /**
@@ -96,15 +93,6 @@ public class FileTypeBox extends AbstractBox {
     }
 
     /**
-     * Sets the "informative integer for the minor version of the major brand".
-     *
-     * @param minorVersion the version number of the major brand
-     */
-    public void setMinorVersion(int minorVersion) {
-        this.minorVersion = minorVersion;
-    }
-
-    /**
      * Gets an informative integer for the minor version of the major brand.
      *
      * @return an informative integer
@@ -112,6 +100,15 @@ public class FileTypeBox extends AbstractBox {
      */
     public long getMinorVersion() {
         return minorVersion;
+    }
+
+    /**
+     * Sets the "informative integer for the minor version of the major brand".
+     *
+     * @param minorVersion the version number of the major brand
+     */
+    public void setMinorVersion(int minorVersion) {
+        this.minorVersion = minorVersion;
     }
 
     /**

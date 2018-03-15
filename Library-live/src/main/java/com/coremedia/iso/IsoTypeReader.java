@@ -20,21 +20,18 @@ import java.nio.ByteBuffer;
 
 public final class IsoTypeReader {
 
-
     public static long readUInt32BE(ByteBuffer bb) {
         long ch1 = readUInt8(bb);
         long ch2 = readUInt8(bb);
         long ch3 = readUInt8(bb);
         long ch4 = readUInt8(bb);
         return ((ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0));
-
     }
-
 
     public static long readUInt32(ByteBuffer bb) {
         long i = bb.getInt();
         if (i < 0) {
-            i += 1l<<32;
+            i += 1l << 32;
         }
         return i;
     }
@@ -45,7 +42,6 @@ public final class IsoTypeReader {
         result += byte2int(bb.get());
         return result;
     }
-
 
     public static int readUInt16(ByteBuffer bb) {
         int result = 0;
@@ -69,7 +65,6 @@ public final class IsoTypeReader {
         return b < 0 ? b + 256 : b;
     }
 
-
     /**
      * Reads a zero terminated UTF-8 string.
      *
@@ -91,7 +86,6 @@ public final class IsoTypeReader {
         byte[] buffer = new byte[length];
         byteBuffer.get(buffer);
         return Utf8.convert(buffer);
-
     }
 
     public static long readUInt64(ByteBuffer byteBuffer) {
@@ -99,7 +93,8 @@ public final class IsoTypeReader {
         // thanks to Erik Nicolas for finding a bug! Cast to long is definitivly needed
         result += readUInt32(byteBuffer) << 32;
         if (result < 0) {
-            throw new RuntimeException("I don't know how to deal with UInt64! long is not sufficient and I don't want to use BigInt");
+            throw new RuntimeException("I don't know how to deal with UInt64! long is not sufficient and I don't want" +
+                    " to use BigInt");
         }
         result += readUInt32(byteBuffer);
 
@@ -116,7 +111,6 @@ public final class IsoTypeReader {
         result |= ((bytes[2] << 8) & 0xFF00);
         result |= ((bytes[3]) & 0xFF);
         return ((double) result) / 65536;
-
     }
 
     public static double readFixedPoint0230(ByteBuffer bb) {
@@ -129,7 +123,6 @@ public final class IsoTypeReader {
         result |= ((bytes[2] << 8) & 0xFF00);
         result |= ((bytes[3]) & 0xFF);
         return ((double) result) / (1 << 30);
-
     }
 
     public static float readFixedPoint88(ByteBuffer bb) {
@@ -156,5 +149,4 @@ public final class IsoTypeReader {
         bb.get(b);
         return IsoFile.bytesToFourCC(b);
     }
-
 }

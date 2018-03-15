@@ -46,7 +46,6 @@ public abstract class AbstractBoxParser implements BoxParser {
      */
     public Box parseBox(ReadableByteChannel byteChannel, ContainerBox parent) throws IOException {
 
-
         ByteBuffer header = ChannelHelper.readFully(byteChannel, 8);
 
         long size = IsoTypeReader.readUInt32(header);
@@ -55,7 +54,6 @@ public abstract class AbstractBoxParser implements BoxParser {
             LOG.severe("Plausibility check failed: size < 8 (size = " + size + "). Stop parsing!");
             return null;
         }
-
 
         String type = IsoTypeReader.read4cc(header);
         byte[] usertype = null;
@@ -71,7 +69,8 @@ public abstract class AbstractBoxParser implements BoxParser {
             if (byteChannel instanceof FileChannel) {
                 size = ((FileChannel) byteChannel).size() - ((FileChannel) byteChannel).position() - 8;
             } else {
-                throw new RuntimeException("Only FileChannel inputs may use size == 0 (box reaches to the end of file)");
+                throw new RuntimeException("Only FileChannel inputs may use size == 0 (box reaches to the end of " +
+                        "file)");
             }
             contentSize = size - 8;
         } else {
@@ -87,8 +86,8 @@ public abstract class AbstractBoxParser implements BoxParser {
         Box box = createBox(type, usertype, parent.getType());
         box.setParent(parent);
         LOG.finest("Parsing " + box.getType());
-        // System.out.println("parsing " + Arrays.toString(box.getType()) + " " + box.getClass().getName() + " size=" + size);
-
+        // System.out.println("parsing " + Arrays.toString(box.getType()) + " " + box.getClass().getName() + " size="
+        // + size);
 
         if (l2i(size - contentSize) == 8) {
             // default - no large box - no uuid
@@ -114,10 +113,8 @@ public abstract class AbstractBoxParser implements BoxParser {
             throw new RuntimeException("I didn't expect that");
         }
 
-
         box.parse(byteChannel, header, contentSize, this);
         // System.out.println("box = " + box);
-
 
         assert size == box.getSize() :
                 "Reconstructed Size is not x to the number of parsed bytes! (" +
@@ -125,6 +122,4 @@ public abstract class AbstractBoxParser implements BoxParser {
                         + " Actual Box size: " + size + " Calculated size: " + box.getSize();
         return box;
     }
-
-
 }

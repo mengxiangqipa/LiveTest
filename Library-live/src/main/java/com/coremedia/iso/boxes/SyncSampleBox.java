@@ -46,6 +46,10 @@ public class SyncSampleBox extends AbstractFullBox {
         return sampleNumber;
     }
 
+    public void setSampleNumber(long[] sampleNumber) {
+        this.sampleNumber = sampleNumber;
+    }
+
     protected long getContentSize() {
         return sampleNumber.length * 4 + 8;
     }
@@ -70,14 +74,9 @@ public class SyncSampleBox extends AbstractFullBox {
         for (long aSampleNumber : sampleNumber) {
             IsoTypeWriter.writeUInt32(byteBuffer, aSampleNumber);
         }
-
     }
 
     public String toString() {
         return "SyncSampleBox[entryCount=" + sampleNumber.length + "]";
-    }
-
-    public void setSampleNumber(long[] sampleNumber) {
-        this.sampleNumber = sampleNumber;
     }
 }

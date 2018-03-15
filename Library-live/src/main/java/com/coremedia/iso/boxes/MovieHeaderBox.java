@@ -36,6 +36,7 @@ import java.util.Date;
  * considered as a whole.
  */
 public class MovieHeaderBox extends AbstractFullBox {
+    public static final String TYPE = "mvhd";
     private Date creationTime;
     private Date modificationTime;
     private long timescale;
@@ -44,16 +45,12 @@ public class MovieHeaderBox extends AbstractFullBox {
     private float volume = 1.0f;
     private Matrix matrix = Matrix.ROTATE_0;
     private long nextTrackId;
-
     private int previewTime;
     private int previewDuration;
     private int posterTime;
     private int selectionTime;
     private int selectionDuration;
     private int currentTime;
-
-
-    public static final String TYPE = "mvhd";
 
     public MovieHeaderBox() {
         super(TYPE);
@@ -63,32 +60,64 @@ public class MovieHeaderBox extends AbstractFullBox {
         return creationTime;
     }
 
+    public void setCreationTime(Date creationTime) {
+        this.creationTime = creationTime;
+    }
+
     public Date getModificationTime() {
         return modificationTime;
+    }
+
+    public void setModificationTime(Date modificationTime) {
+        this.modificationTime = modificationTime;
     }
 
     public long getTimescale() {
         return timescale;
     }
 
+    public void setTimescale(long timescale) {
+        this.timescale = timescale;
+    }
+
     public long getDuration() {
         return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
     public double getRate() {
         return rate;
     }
 
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
     public float getVolume() {
         return volume;
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
     }
 
     public Matrix getMatrix() {
         return matrix;
     }
 
+    public void setMatrix(Matrix matrix) {
+        this.matrix = matrix;
+    }
+
     public long getNextTrackId() {
         return nextTrackId;
+    }
+
+    public void setNextTrackId(long nextTrackId) {
+        this.nextTrackId = nextTrackId;
     }
 
     protected long getContentSize() {
@@ -132,7 +161,6 @@ public class MovieHeaderBox extends AbstractFullBox {
         currentTime = content.getInt();
 
         nextTrackId = IsoTypeReader.readUInt32(content);
-
     }
 
     public String toString() {
@@ -156,7 +184,6 @@ public class MovieHeaderBox extends AbstractFullBox {
         result.append("]");
         return result.toString();
     }
-
 
     @Override
     protected void getContent(ByteBuffer byteBuffer) {
@@ -188,39 +215,6 @@ public class MovieHeaderBox extends AbstractFullBox {
         byteBuffer.putInt(currentTime);
 
         IsoTypeWriter.writeUInt32(byteBuffer, nextTrackId);
-    }
-
-
-    public void setCreationTime(Date creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    public void setModificationTime(Date modificationTime) {
-        this.modificationTime = modificationTime;
-    }
-
-    public void setTimescale(long timescale) {
-        this.timescale = timescale;
-    }
-
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
-
-    public void setRate(double rate) {
-        this.rate = rate;
-    }
-
-    public void setVolume(float volume) {
-        this.volume = volume;
-    }
-
-    public void setMatrix(Matrix matrix) {
-        this.matrix = matrix;
-    }
-
-    public void setNextTrackId(long nextTrackId) {
-        this.nextTrackId = nextTrackId;
     }
 
     public int getPreviewTime() {

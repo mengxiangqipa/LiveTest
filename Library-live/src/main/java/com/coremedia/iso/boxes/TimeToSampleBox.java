@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.coremedia.iso.IsoTypeReader;
 import com.coremedia.iso.IsoTypeWriter;
 import com.googlecode.mp4parser.AbstractFullBox;
@@ -46,9 +45,32 @@ public class TimeToSampleBox extends AbstractFullBox {
 
     List<Entry> entries = Collections.emptyList();
 
-
     public TimeToSampleBox() {
         super(TYPE);
+    }
+
+    /**
+     * Decompresses the list of entries and returns the list of decoding times.
+     *
+     * @return decoding time per sample
+     */
+    public static long[] blowupTimeToSamples(List<TimeToSampleBox.Entry> entries) {
+        long numOfSamples = 0;
+        for (TimeToSampleBox.Entry entry : entries) {
+            numOfSamples += entry.getCount();
+        }
+        assert numOfSamples <= Integer.MAX_VALUE;
+        long[] decodingTime = new long[(int) numOfSamples];
+
+        int current = 0;
+
+        for (TimeToSampleBox.Entry entry : entries) {
+            for (int i = 0; i < entry.getCount(); i++) {
+                decodingTime[current++] = entry.getDelta();
+            }
+        }
+
+        return decodingTime;
     }
 
     protected long getContentSize() {
@@ -64,7 +86,6 @@ public class TimeToSampleBox extends AbstractFullBox {
         for (int i = 0; i < entryCount; i++) {
             entries.add(new Entry(IsoTypeReader.readUInt32(content), IsoTypeReader.readUInt32(content)));
         }
-
     }
 
     @Override
@@ -102,12 +123,12 @@ public class TimeToSampleBox extends AbstractFullBox {
             return count;
         }
 
-        public long getDelta() {
-            return delta;
-        }
-
         public void setCount(long count) {
             this.count = count;
+        }
+
+        public long getDelta() {
+            return delta;
         }
 
         public void setDelta(long delta) {
@@ -122,31 +143,4 @@ public class TimeToSampleBox extends AbstractFullBox {
                     '}';
         }
     }
-
-    /**
-     * Decompresses the list of entries and returns the list of decoding times.
-     *
-     * @return decoding time per sample
-     */
-    public static long[] blowupTimeToSamples(List<TimeToSampleBox.Entry> entries) {
-        long numOfSamples = 0;
-        for (TimeToSampleBox.Entry entry : entries) {
-            numOfSamples += entry.getCount();
-        }
-        assert numOfSamples <= Integer.MAX_VALUE;
-        long[] decodingTime = new long[(int) numOfSamples];
-
-        int current = 0;
-
-
-        for (TimeToSampleBox.Entry entry : entries) {
-            for (int i = 0; i < entry.getCount(); i++) {
-                decodingTime[current++] = entry.getDelta();
-            }
-        }
-
-        return decodingTime;
-    }
-
-
 }

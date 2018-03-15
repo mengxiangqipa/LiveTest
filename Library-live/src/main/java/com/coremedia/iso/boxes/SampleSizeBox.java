@@ -16,7 +16,6 @@
 
 package com.coremedia.iso.boxes;
 
-
 import com.coremedia.iso.IsoTypeReader;
 import com.coremedia.iso.IsoTypeWriter;
 import com.googlecode.mp4parser.AbstractFullBox;
@@ -30,10 +29,10 @@ import static com.googlecode.mp4parser.util.CastUtils.l2i;
  * Defined in ISO/IEC 14496-12.
  */
 public class SampleSizeBox extends AbstractFullBox {
-    private long sampleSize;
-    private long[] sampleSizes = new long[0];
     public static final String TYPE = "stsz";
     int sampleCount;
+    private long sampleSize;
+    private long[] sampleSizes = new long[0];
 
     public SampleSizeBox() {
         super(TYPE);
@@ -54,7 +53,6 @@ public class SampleSizeBox extends AbstractFullBox {
         this.sampleSize = sampleSize;
     }
 
-
     public long getSampleSizeAtIndex(int index) {
         if (sampleSize > 0) {
             return sampleSize;
@@ -69,7 +67,6 @@ public class SampleSizeBox extends AbstractFullBox {
         } else {
             return sampleSizes.length;
         }
-
     }
 
     public long[] getSampleSizes() {
@@ -112,7 +109,6 @@ public class SampleSizeBox extends AbstractFullBox {
         } else {
             IsoTypeWriter.writeUInt32(byteBuffer, sampleCount);
         }
-
     }
 
     public String toString() {

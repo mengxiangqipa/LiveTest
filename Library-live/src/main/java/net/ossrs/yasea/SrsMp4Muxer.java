@@ -65,29 +65,6 @@ public class SrsMp4Muxer {
     private static final String TAG = "SrsMp4Muxer";
     private static final int VIDEO_TRACK = 100;
     private static final int AUDIO_TRACK = 101;
-
-    private File mRecFile;
-    private SrsRecordHandler mHandler;
-
-    private MediaFormat videoFormat = null;
-    private MediaFormat audioFormat = null;
-
-    private SrsRawH264Stream avc = new SrsRawH264Stream();
-    private Mp4Movie mp4Movie = new Mp4Movie();
-
-    private boolean aacSpecConfig = false;
-    private ByteBuffer h264_sps = null;
-    private ByteBuffer h264_pps = null;
-    private ArrayList<byte[]> spsList = new ArrayList<>();
-    private ArrayList<byte[]> ppsList = new ArrayList<>();
-
-    private Thread worker;
-    private volatile boolean bRecording = false;
-    private volatile boolean bPaused = false;
-    private volatile boolean needToFindKeyFrame = true;
-    private final Object writeLock = new Object();
-    private ConcurrentLinkedQueue<SrsEsFrame> frameCache = new ConcurrentLinkedQueue<>();
-
     private static Map<Integer, Integer> samplingFrequencyIndexMap = new HashMap<>();
 
     static {
@@ -105,10 +82,35 @@ public class SrsMp4Muxer {
         samplingFrequencyIndexMap.put(8000, 0xb);
     }
 
+    private final Object writeLock = new Object();
+    private File mRecFile;
+    private SrsRecordHandler mHandler;
+    private MediaFormat videoFormat = null;
+    private MediaFormat audioFormat = null;
+    private SrsRawH264Stream avc = new SrsRawH264Stream();
+    private Mp4Movie mp4Movie = new Mp4Movie();
+    private boolean aacSpecConfig = false;
+    private ByteBuffer h264_sps = null;
+    private ByteBuffer h264_pps = null;
+    private ArrayList<byte[]> spsList = new ArrayList<>();
+    private ArrayList<byte[]> ppsList = new ArrayList<>();
+    private Thread worker;
+    private volatile boolean bRecording = false;
+    private volatile boolean bPaused = false;
+    private volatile boolean needToFindKeyFrame = true;
+    private ConcurrentLinkedQueue<SrsEsFrame> frameCache = new ConcurrentLinkedQueue<>();
+    private InterleaveChunkMdat mdat = null;
+    private FileOutputStream fos = null;
+    private FileChannel fc = null;
+    private volatile long recFileSize = 0;
+    private volatile long mdatOffset = 0;
+    private volatile long flushBytes = 0;
+    private HashMap<Track, long[]> track2SampleSizes = new HashMap<>();
+
     public SrsMp4Muxer(SrsRecordHandler handler) {
         mHandler = handler;
     }
-    
+
     /**
      * start recording.
      */
@@ -230,51 +232,6 @@ public class SrsMp4Muxer {
         }
     }
 
-    /**
-     * Table 7-1 – NAL unit type codes, syntax element categories, and NAL unit type classes
-     * H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 83.
-     */
-    private class SrsAvcNaluType
-    {
-        // Unspecified
-        public final static int Reserved = 0;
-
-        // Coded slice of a non-IDR picture slice_layer_without_partitioning_rbsp( )
-        public final static int NonIDR = 1;
-        // Coded slice data partition A slice_data_partition_a_layer_rbsp( )
-        public final static int DataPartitionA = 2;
-        // Coded slice data partition B slice_data_partition_b_layer_rbsp( )
-        public final static int DataPartitionB = 3;
-        // Coded slice data partition C slice_data_partition_c_layer_rbsp( )
-        public final static int DataPartitionC = 4;
-        // Coded slice of an IDR picture slice_layer_without_partitioning_rbsp( )
-        public final static int IDR = 5;
-        // Supplemental enhancement information (SEI) sei_rbsp( )
-        public final static int SEI = 6;
-        // Sequence parameter set seq_parameter_set_rbsp( )
-        public final static int SPS = 7;
-        // Picture parameter set pic_parameter_set_rbsp( )
-        public final static int PPS = 8;
-        // Access unit delimiter access_unit_delimiter_rbsp( )
-        public final static int AccessUnitDelimiter = 9;
-        // End of sequence end_of_seq_rbsp( )
-        public final static int EOSequence = 10;
-        // End of stream end_of_stream_rbsp( )
-        public final static int EOStream = 11;
-        // Filler data filler_data_rbsp( )
-        public final static int FilterData = 12;
-        // Sequence parameter set extension seq_parameter_set_extension_rbsp( )
-        public final static int SPSExt = 13;
-        // Prefix NAL unit prefix_nal_unit_rbsp( )
-        public final static int PrefixNALU = 14;
-        // Subset sequence parameter set subset_seq_parameter_set_rbsp( )
-        public final static int SubsetSPS = 15;
-        // Coded slice of an auxiliary coded picture without partitioning slice_layer_without_partitioning_rbsp( )
-        public final static int LayerWithoutPartition = 19;
-        // Coded slice extension slice_layer_extension_rbsp( )
-        public final static int CodedSliceExt = 20;
-    }
-
     private void writeVideoSample(final ByteBuffer bb, MediaCodec.BufferInfo bi) {
         int nal_unit_type = bb.get(4) & 0x1f;
         if (nal_unit_type == SrsAvcNaluType.IDR || nal_unit_type == SrsAvcNaluType.NonIDR) {
@@ -340,439 +297,6 @@ public class SrsMp4Muxer {
             }
         }
     }
-
-    /**
-     * the search result for annexb.
-     */
-    private class SrsAnnexbSearch {
-        public int nb_start_code = 0;
-        public boolean match = false;
-    }
-
-    /**
-     * the demuxed tag frame.
-     */
-    private class SrsEsFrameBytes {
-        public ByteBuffer data;
-        public int size;
-    }
-
-    /**
-     * the AV frame.
-     */
-    private class SrsEsFrame {
-        public ByteBuffer bb;
-        public MediaCodec.BufferInfo bi;
-        public int track;
-        public boolean isKeyFrame;
-
-        public boolean is_video() {
-            return track == VIDEO_TRACK;
-        }
-
-        public boolean is_audio() {
-            return track == AUDIO_TRACK;
-        }
-    }
-
-    /**
-     * the raw h.264 stream, in annexb.
-     */
-    private class SrsRawH264Stream {
-        public boolean is_sps(SrsEsFrameBytes frame) {
-            if (frame.size < 1) {
-                return false;
-            }
-
-            return (frame.data.get(0) & 0x1f) == SrsAvcNaluType.SPS;
-        }
-
-        public boolean is_pps(SrsEsFrameBytes frame) {
-            if (frame.size < 1) {
-                return false;
-            }
-            return (frame.data.get(0) & 0x1f) == SrsAvcNaluType.PPS;
-        }
-
-        public SrsAnnexbSearch srs_avc_startswith_annexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
-            SrsAnnexbSearch as = new SrsAnnexbSearch();
-            as.match = false;
-
-            int pos = bb.position();
-            while (pos < bi.size - 3) {
-                // not match.
-                if (bb.get(pos) != 0x00 || bb.get(pos + 1) != 0x00) {
-                    break;
-                }
-
-                // match N[00] 00 00 01, where N>=0
-                if (bb.get(pos + 2) == 0x01) {
-                    as.match = true;
-                    as.nb_start_code = pos + 3 - bb.position();
-                    break;
-                }
-
-                pos++;
-            }
-
-            return as;
-        }
-
-        public SrsEsFrameBytes annexb_demux(ByteBuffer bb, MediaCodec.BufferInfo bi) {
-            SrsEsFrameBytes tbb = new SrsEsFrameBytes();
-
-            while (bb.position() < bi.size) {
-                // each frame must prefixed by annexb format.
-                // about annexb, @see H.264-AVC-ISO_IEC_14496-10.pdf, page 211.
-                SrsAnnexbSearch tbbsc = srs_avc_startswith_annexb(bb, bi);
-                if (!tbbsc.match || tbbsc.nb_start_code < 3) {
-                    Log.e(TAG, "annexb not match.");
-                    mHandler.notifyRecordIllegalArgumentException(new IllegalArgumentException(
-                        String.format("annexb not match for %dB, pos=%d", bi.size, bb.position())));
-                }
-
-                // the start codes.
-                ByteBuffer tbbs = bb.slice();
-                for (int i = 0; i < tbbsc.nb_start_code; i++) {
-                    bb.get();
-                }
-
-                // find out the frame size.
-                tbb.data = bb.slice();
-                int pos = bb.position();
-                while (bb.position() < bi.size) {
-                    SrsAnnexbSearch bsc = srs_avc_startswith_annexb(bb, bi);
-                    if (bsc.match) {
-                        break;
-                    }
-                    bb.get();
-                }
-
-                tbb.size = bb.position() - pos;
-                break;
-            }
-
-            return tbb;
-        }
-    }
-
-    private class Sample {
-        private long offset = 0;
-        private long size = 0;
-
-        public Sample(long offset, long size) {
-            this.offset = offset;
-            this.size = size;
-        }
-
-        public long getOffset() {
-            return offset;
-        }
-
-        public long getSize() {
-            return size;
-        }
-    }
-
-    private class Track {
-        private int trackId = 0;
-        private ArrayList<Sample> samples = new ArrayList<>();
-        private long duration = 0;
-        private String handler;
-        private AbstractMediaHeaderBox headerBox = null;
-        private SampleDescriptionBox sampleDescriptionBox = null;
-        private LinkedList<Integer> syncSamples = null;
-        private int timeScale;
-        private Date creationTime = new Date();
-        private int height;
-        private int width;
-        private float volume = 0;
-        private ArrayList<Long> sampleDurations = new ArrayList<>();
-        private boolean isAudio = false;
-        private long lastPresentationTimeUs = 0;
-        private boolean first = true;
-
-        public Track(int id, MediaFormat format, boolean audio) {
-            trackId = id;
-            isAudio = audio;
-            if (!isAudio) {
-                sampleDurations.add((long) 3015);
-                duration = 3015;
-                width = format.getInteger(MediaFormat.KEY_WIDTH);
-                height = format.getInteger(MediaFormat.KEY_HEIGHT);
-                timeScale = 90000;
-                syncSamples = new LinkedList<>();
-                handler = "vide";
-                headerBox = new VideoMediaHeaderBox();
-                sampleDescriptionBox = new SampleDescriptionBox();
-                if (format.getString(MediaFormat.KEY_MIME).contentEquals(SrsEncoder.VCODEC)) {
-                    VisualSampleEntry visualSampleEntry = new VisualSampleEntry("avc1");
-                    visualSampleEntry.setDataReferenceIndex(1);
-                    visualSampleEntry.setDepth(24);
-                    visualSampleEntry.setFrameCount(1);
-                    visualSampleEntry.setHorizresolution(72);
-                    visualSampleEntry.setVertresolution(72);
-                    visualSampleEntry.setWidth(width);
-                    visualSampleEntry.setHeight(height);
-                    visualSampleEntry.setCompressorname("AVC Coding");
-
-                    AvcConfigurationBox avcConfigurationBox = new AvcConfigurationBox();
-                    avcConfigurationBox.setConfigurationVersion(1);
-                    avcConfigurationBox.setAvcProfileIndication((int) h264_sps.get(1));
-                    avcConfigurationBox.setProfileCompatibility(0);
-                    avcConfigurationBox.setAvcLevelIndication((int) h264_sps.get(3));
-                    avcConfigurationBox.setLengthSizeMinusOne(3);
-                    avcConfigurationBox.setSequenceParameterSets(spsList);
-                    avcConfigurationBox.setPictureParameterSets(ppsList);
-                    avcConfigurationBox.setBitDepthLumaMinus8(-1);
-                    avcConfigurationBox.setBitDepthChromaMinus8(-1);
-                    avcConfigurationBox.setChromaFormat(-1);
-                    avcConfigurationBox.setHasExts(false);
-
-                    visualSampleEntry.addBox(avcConfigurationBox);
-                    sampleDescriptionBox.addBox(visualSampleEntry);
-                }
-            } else {
-                sampleDurations.add((long) 1024);
-                duration = 1024;
-                volume = 1;
-                timeScale = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-                handler = "soun";
-                headerBox = new SoundMediaHeaderBox();
-                sampleDescriptionBox = new SampleDescriptionBox();
-                AudioSampleEntry audioSampleEntry = new AudioSampleEntry("mp4a");
-                audioSampleEntry.setChannelCount(format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
-                audioSampleEntry.setSampleRate(format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
-                audioSampleEntry.setDataReferenceIndex(1);
-                audioSampleEntry.setSampleSize(16);
-
-                ESDescriptorBox esds = new ESDescriptorBox();
-                ESDescriptor descriptor = new ESDescriptor();
-                descriptor.setEsId(0);
-
-                SLConfigDescriptor slConfigDescriptor = new SLConfigDescriptor();
-                slConfigDescriptor.setPredefined(2);
-                descriptor.setSlConfigDescriptor(slConfigDescriptor);
-
-                DecoderConfigDescriptor decoderConfigDescriptor = new DecoderConfigDescriptor();
-                decoderConfigDescriptor.setObjectTypeIndication(0x40);
-                decoderConfigDescriptor.setStreamType(5);
-                decoderConfigDescriptor.setBufferSizeDB(1536);
-                decoderConfigDescriptor.setMaxBitRate(96000);
-                decoderConfigDescriptor.setAvgBitRate(96000);
-
-                AudioSpecificConfig audioSpecificConfig = new AudioSpecificConfig();
-                audioSpecificConfig.setAudioObjectType(2);
-                audioSpecificConfig.setSamplingFrequencyIndex(samplingFrequencyIndexMap.get((int) audioSampleEntry.getSampleRate()));
-                audioSpecificConfig.setChannelConfiguration(audioSampleEntry.getChannelCount());
-                decoderConfigDescriptor.setAudioSpecificInfo(audioSpecificConfig);
-
-                descriptor.setDecoderConfigDescriptor(decoderConfigDescriptor);
-
-                ByteBuffer data = descriptor.serialize();
-                esds.setEsDescriptor(descriptor);
-                esds.setData(data);
-                audioSampleEntry.addBox(esds);
-                sampleDescriptionBox.addBox(audioSampleEntry);
-            }
-        }
-
-        public void addSample(long offset, MediaCodec.BufferInfo bi) {
-            long delta = bi.presentationTimeUs - lastPresentationTimeUs;
-            if (delta < 0) {
-                return;
-            }
-            boolean isSyncFrame = !isAudio && (bi.flags & MediaCodec.BUFFER_FLAG_SYNC_FRAME) != 0;
-            samples.add(new Sample(offset, bi.size));
-            if (syncSamples != null && isSyncFrame) {
-                syncSamples.add(samples.size());
-            }
-
-            delta = (delta * timeScale + 500000L) / 1000000L;
-            lastPresentationTimeUs = bi.presentationTimeUs;
-            if (!first) {
-                sampleDurations.add(sampleDurations.size() - 1, delta);
-                duration += delta;
-            }
-            first = false;
-        }
-
-        public void clearSample() {
-            first = true;
-            samples.clear();
-            syncSamples.clear();
-            sampleDurations.clear();
-        }
-
-        public ArrayList<Sample> getSamples() {
-            return samples;
-        }
-
-        public long getDuration() {
-            return duration;
-        }
-
-        public String getHandler() {
-            return handler;
-        }
-
-        public AbstractMediaHeaderBox getMediaHeaderBox() {
-            return headerBox;
-        }
-
-        public SampleDescriptionBox getSampleDescriptionBox() {
-            return sampleDescriptionBox;
-        }
-
-        public long[] getSyncSamples() {
-            if (syncSamples == null || syncSamples.isEmpty()) {
-                return null;
-            }
-            long[] returns = new long[syncSamples.size()];
-            for (int i = 0; i < syncSamples.size(); i++) {
-                returns[i] = syncSamples.get(i);
-            }
-            return returns;
-        }
-
-        public int getTimeScale() {
-            return timeScale;
-        }
-
-        public Date getCreationTime() {
-            return creationTime;
-        }
-
-        public int getWidth() {
-            return width;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public float getVolume() {
-            return volume;
-        }
-
-        public ArrayList<Long> getSampleDurations() {
-            return sampleDurations;
-        }
-
-        public boolean isAudio() {
-            return isAudio;
-        }
-
-        public int getTrackId() {
-            return trackId;
-        }
-    }
-
-    private class Mp4Movie {
-        private Matrix matrix = Matrix.ROTATE_0;
-        private HashMap<Integer, Track> tracks = new HashMap<>();
-
-        public Matrix getMatrix() {
-            return matrix;
-        }
-
-        public HashMap<Integer, Track> getTracks() {
-            return tracks;
-        }
-
-        public void addSample(int trackIndex, long offset, MediaCodec.BufferInfo bi) {
-            Track track = tracks.get(trackIndex);
-            track.addSample(offset, bi);
-        }
-
-        public void addTrack(MediaFormat format, boolean isAudio) {
-            if (format != null) {
-                if (isAudio) {
-                    tracks.put(AUDIO_TRACK, new Track(tracks.size(), format, true));
-                } else {
-                    tracks.put(VIDEO_TRACK, new Track(tracks.size(), format, false));
-                }
-            }
-        }
-
-        public void removeTrack(int trackIndex) {
-            tracks.remove(trackIndex);
-        }
-    }
-
-    private class InterleaveChunkMdat implements Box {
-        private boolean first = true;
-        private ContainerBox parent;
-        private ByteBuffer header = ByteBuffer.allocateDirect(16);
-        private long contentSize = 1024 * 1024 * 1024;
-
-        public ContainerBox getParent() {
-            return parent;
-        }
-
-        public void setParent(ContainerBox parent) {
-            this.parent = parent;
-        }
-
-        public void setContentSize(long contentSize) {
-            this.contentSize = contentSize;
-        }
-
-        public long getContentSize() {
-            return contentSize;
-        }
-
-        public String getType() {
-            return "mdat";
-        }
-
-        public long getSize() {
-            return header.limit() + contentSize;
-        }
-
-        public int getHeaderSize() {
-            return header.limit();
-        }
-
-        private boolean isSmallBox(long contentSize) {
-            return (contentSize + header.limit()) < 4294967296L;
-        }
-
-        public void getBox(WritableByteChannel writableByteChannel) {
-            header.rewind();
-            long size = getSize();
-            if (isSmallBox(size)) {
-                IsoTypeWriter.writeUInt32(header, size);
-            } else {
-                IsoTypeWriter.writeUInt32(header, 1);
-            }
-            header.put(IsoFile.fourCCtoBytes("mdat"));
-            if (isSmallBox(size)) {
-                header.put(new byte[8]);
-            } else {
-                IsoTypeWriter.writeUInt64(header, size);
-            }
-            header.rewind();
-
-            try {
-                writableByteChannel.write(header);
-            } catch (IOException e) {
-                mHandler.notifyRecordIOException(e);
-            }
-        }
-
-        @Override
-        public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
-        }
-    }
-
-    private InterleaveChunkMdat mdat = null;
-    private FileOutputStream fos = null;
-    private FileChannel fc = null;
-    private volatile long recFileSize = 0;
-    private volatile long mdatOffset = 0;
-    private volatile long flushBytes = 0;
-    private HashMap<Track, long[]> track2SampleSizes = new HashMap<>();
 
     private void createMovie(File outputFile) {
         try {
@@ -1082,5 +606,476 @@ public class SrsMp4Muxer {
         StaticChunkOffsetBox stco = new StaticChunkOffsetBox();
         stco.setChunkOffsets(chunkOffsetsLong);
         stbl.addBox(stco);
+    }
+
+    /**
+     * Table 7-1 – NAL unit type codes, syntax element categories, and NAL unit type classes
+     * H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 83.
+     */
+    private class SrsAvcNaluType {
+        // Unspecified
+        public final static int Reserved = 0;
+
+        // Coded slice of a non-IDR picture slice_layer_without_partitioning_rbsp( )
+        public final static int NonIDR = 1;
+        // Coded slice data partition A slice_data_partition_a_layer_rbsp( )
+        public final static int DataPartitionA = 2;
+        // Coded slice data partition B slice_data_partition_b_layer_rbsp( )
+        public final static int DataPartitionB = 3;
+        // Coded slice data partition C slice_data_partition_c_layer_rbsp( )
+        public final static int DataPartitionC = 4;
+        // Coded slice of an IDR picture slice_layer_without_partitioning_rbsp( )
+        public final static int IDR = 5;
+        // Supplemental enhancement information (SEI) sei_rbsp( )
+        public final static int SEI = 6;
+        // Sequence parameter set seq_parameter_set_rbsp( )
+        public final static int SPS = 7;
+        // Picture parameter set pic_parameter_set_rbsp( )
+        public final static int PPS = 8;
+        // Access unit delimiter access_unit_delimiter_rbsp( )
+        public final static int AccessUnitDelimiter = 9;
+        // End of sequence end_of_seq_rbsp( )
+        public final static int EOSequence = 10;
+        // End of stream end_of_stream_rbsp( )
+        public final static int EOStream = 11;
+        // Filler data filler_data_rbsp( )
+        public final static int FilterData = 12;
+        // Sequence parameter set extension seq_parameter_set_extension_rbsp( )
+        public final static int SPSExt = 13;
+        // Prefix NAL unit prefix_nal_unit_rbsp( )
+        public final static int PrefixNALU = 14;
+        // Subset sequence parameter set subset_seq_parameter_set_rbsp( )
+        public final static int SubsetSPS = 15;
+        // Coded slice of an auxiliary coded picture without partitioning slice_layer_without_partitioning_rbsp( )
+        public final static int LayerWithoutPartition = 19;
+        // Coded slice extension slice_layer_extension_rbsp( )
+        public final static int CodedSliceExt = 20;
+    }
+
+    /**
+     * the search result for annexb.
+     */
+    private class SrsAnnexbSearch {
+        public int nb_start_code = 0;
+        public boolean match = false;
+    }
+
+    /**
+     * the demuxed tag frame.
+     */
+    private class SrsEsFrameBytes {
+        public ByteBuffer data;
+        public int size;
+    }
+
+    /**
+     * the AV frame.
+     */
+    private class SrsEsFrame {
+        public ByteBuffer bb;
+        public MediaCodec.BufferInfo bi;
+        public int track;
+        public boolean isKeyFrame;
+
+        public boolean is_video() {
+            return track == VIDEO_TRACK;
+        }
+
+        public boolean is_audio() {
+            return track == AUDIO_TRACK;
+        }
+    }
+
+    /**
+     * the raw h.264 stream, in annexb.
+     */
+    private class SrsRawH264Stream {
+        public boolean is_sps(SrsEsFrameBytes frame) {
+            if (frame.size < 1) {
+                return false;
+            }
+
+            return (frame.data.get(0) & 0x1f) == SrsAvcNaluType.SPS;
+        }
+
+        public boolean is_pps(SrsEsFrameBytes frame) {
+            if (frame.size < 1) {
+                return false;
+            }
+            return (frame.data.get(0) & 0x1f) == SrsAvcNaluType.PPS;
+        }
+
+        public SrsAnnexbSearch srs_avc_startswith_annexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
+            SrsAnnexbSearch as = new SrsAnnexbSearch();
+            as.match = false;
+
+            int pos = bb.position();
+            while (pos < bi.size - 3) {
+                // not match.
+                if (bb.get(pos) != 0x00 || bb.get(pos + 1) != 0x00) {
+                    break;
+                }
+
+                // match N[00] 00 00 01, where N>=0
+                if (bb.get(pos + 2) == 0x01) {
+                    as.match = true;
+                    as.nb_start_code = pos + 3 - bb.position();
+                    break;
+                }
+
+                pos++;
+            }
+
+            return as;
+        }
+
+        public SrsEsFrameBytes annexb_demux(ByteBuffer bb, MediaCodec.BufferInfo bi) {
+            SrsEsFrameBytes tbb = new SrsEsFrameBytes();
+
+            while (bb.position() < bi.size) {
+                // each frame must prefixed by annexb format.
+                // about annexb, @see H.264-AVC-ISO_IEC_14496-10.pdf, page 211.
+                SrsAnnexbSearch tbbsc = srs_avc_startswith_annexb(bb, bi);
+                if (!tbbsc.match || tbbsc.nb_start_code < 3) {
+                    Log.e(TAG, "annexb not match.");
+                    mHandler.notifyRecordIllegalArgumentException(new IllegalArgumentException(
+                            String.format("annexb not match for %dB, pos=%d", bi.size, bb.position())));
+                }
+
+                // the start codes.
+                ByteBuffer tbbs = bb.slice();
+                for (int i = 0; i < tbbsc.nb_start_code; i++) {
+                    bb.get();
+                }
+
+                // find out the frame size.
+                tbb.data = bb.slice();
+                int pos = bb.position();
+                while (bb.position() < bi.size) {
+                    SrsAnnexbSearch bsc = srs_avc_startswith_annexb(bb, bi);
+                    if (bsc.match) {
+                        break;
+                    }
+                    bb.get();
+                }
+
+                tbb.size = bb.position() - pos;
+                break;
+            }
+
+            return tbb;
+        }
+    }
+
+    private class Sample {
+        private long offset = 0;
+        private long size = 0;
+
+        public Sample(long offset, long size) {
+            this.offset = offset;
+            this.size = size;
+        }
+
+        public long getOffset() {
+            return offset;
+        }
+
+        public long getSize() {
+            return size;
+        }
+    }
+
+    private class Track {
+        private int trackId = 0;
+        private ArrayList<Sample> samples = new ArrayList<>();
+        private long duration = 0;
+        private String handler;
+        private AbstractMediaHeaderBox headerBox = null;
+        private SampleDescriptionBox sampleDescriptionBox = null;
+        private LinkedList<Integer> syncSamples = null;
+        private int timeScale;
+        private Date creationTime = new Date();
+        private int height;
+        private int width;
+        private float volume = 0;
+        private ArrayList<Long> sampleDurations = new ArrayList<>();
+        private boolean isAudio = false;
+        private long lastPresentationTimeUs = 0;
+        private boolean first = true;
+
+        public Track(int id, MediaFormat format, boolean audio) {
+            trackId = id;
+            isAudio = audio;
+            if (!isAudio) {
+                sampleDurations.add((long) 3015);
+                duration = 3015;
+                width = format.getInteger(MediaFormat.KEY_WIDTH);
+                height = format.getInteger(MediaFormat.KEY_HEIGHT);
+                timeScale = 90000;
+                syncSamples = new LinkedList<>();
+                handler = "vide";
+                headerBox = new VideoMediaHeaderBox();
+                sampleDescriptionBox = new SampleDescriptionBox();
+                if (format.getString(MediaFormat.KEY_MIME).contentEquals(SrsEncoder.VCODEC)) {
+                    VisualSampleEntry visualSampleEntry = new VisualSampleEntry("avc1");
+                    visualSampleEntry.setDataReferenceIndex(1);
+                    visualSampleEntry.setDepth(24);
+                    visualSampleEntry.setFrameCount(1);
+                    visualSampleEntry.setHorizresolution(72);
+                    visualSampleEntry.setVertresolution(72);
+                    visualSampleEntry.setWidth(width);
+                    visualSampleEntry.setHeight(height);
+                    visualSampleEntry.setCompressorname("AVC Coding");
+
+                    AvcConfigurationBox avcConfigurationBox = new AvcConfigurationBox();
+                    avcConfigurationBox.setConfigurationVersion(1);
+                    avcConfigurationBox.setAvcProfileIndication((int) h264_sps.get(1));
+                    avcConfigurationBox.setProfileCompatibility(0);
+                    avcConfigurationBox.setAvcLevelIndication((int) h264_sps.get(3));
+                    avcConfigurationBox.setLengthSizeMinusOne(3);
+                    avcConfigurationBox.setSequenceParameterSets(spsList);
+                    avcConfigurationBox.setPictureParameterSets(ppsList);
+                    avcConfigurationBox.setBitDepthLumaMinus8(-1);
+                    avcConfigurationBox.setBitDepthChromaMinus8(-1);
+                    avcConfigurationBox.setChromaFormat(-1);
+                    avcConfigurationBox.setHasExts(false);
+
+                    visualSampleEntry.addBox(avcConfigurationBox);
+                    sampleDescriptionBox.addBox(visualSampleEntry);
+                }
+            } else {
+                sampleDurations.add((long) 1024);
+                duration = 1024;
+                volume = 1;
+                timeScale = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+                handler = "soun";
+                headerBox = new SoundMediaHeaderBox();
+                sampleDescriptionBox = new SampleDescriptionBox();
+                AudioSampleEntry audioSampleEntry = new AudioSampleEntry("mp4a");
+                audioSampleEntry.setChannelCount(format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+                audioSampleEntry.setSampleRate(format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
+                audioSampleEntry.setDataReferenceIndex(1);
+                audioSampleEntry.setSampleSize(16);
+
+                ESDescriptorBox esds = new ESDescriptorBox();
+                ESDescriptor descriptor = new ESDescriptor();
+                descriptor.setEsId(0);
+
+                SLConfigDescriptor slConfigDescriptor = new SLConfigDescriptor();
+                slConfigDescriptor.setPredefined(2);
+                descriptor.setSlConfigDescriptor(slConfigDescriptor);
+
+                DecoderConfigDescriptor decoderConfigDescriptor = new DecoderConfigDescriptor();
+                decoderConfigDescriptor.setObjectTypeIndication(0x40);
+                decoderConfigDescriptor.setStreamType(5);
+                decoderConfigDescriptor.setBufferSizeDB(1536);
+                decoderConfigDescriptor.setMaxBitRate(96000);
+                decoderConfigDescriptor.setAvgBitRate(96000);
+
+                AudioSpecificConfig audioSpecificConfig = new AudioSpecificConfig();
+                audioSpecificConfig.setAudioObjectType(2);
+                audioSpecificConfig.setSamplingFrequencyIndex(samplingFrequencyIndexMap.get((int) audioSampleEntry
+                        .getSampleRate()));
+                audioSpecificConfig.setChannelConfiguration(audioSampleEntry.getChannelCount());
+                decoderConfigDescriptor.setAudioSpecificInfo(audioSpecificConfig);
+
+                descriptor.setDecoderConfigDescriptor(decoderConfigDescriptor);
+
+                ByteBuffer data = descriptor.serialize();
+                esds.setEsDescriptor(descriptor);
+                esds.setData(data);
+                audioSampleEntry.addBox(esds);
+                sampleDescriptionBox.addBox(audioSampleEntry);
+            }
+        }
+
+        public void addSample(long offset, MediaCodec.BufferInfo bi) {
+            long delta = bi.presentationTimeUs - lastPresentationTimeUs;
+            if (delta < 0) {
+                return;
+            }
+            boolean isSyncFrame = !isAudio && (bi.flags & MediaCodec.BUFFER_FLAG_SYNC_FRAME) != 0;
+            samples.add(new Sample(offset, bi.size));
+            if (syncSamples != null && isSyncFrame) {
+                syncSamples.add(samples.size());
+            }
+
+            delta = (delta * timeScale + 500000L) / 1000000L;
+            lastPresentationTimeUs = bi.presentationTimeUs;
+            if (!first) {
+                sampleDurations.add(sampleDurations.size() - 1, delta);
+                duration += delta;
+            }
+            first = false;
+        }
+
+        public void clearSample() {
+            first = true;
+            samples.clear();
+            syncSamples.clear();
+            sampleDurations.clear();
+        }
+
+        public ArrayList<Sample> getSamples() {
+            return samples;
+        }
+
+        public long getDuration() {
+            return duration;
+        }
+
+        public String getHandler() {
+            return handler;
+        }
+
+        public AbstractMediaHeaderBox getMediaHeaderBox() {
+            return headerBox;
+        }
+
+        public SampleDescriptionBox getSampleDescriptionBox() {
+            return sampleDescriptionBox;
+        }
+
+        public long[] getSyncSamples() {
+            if (syncSamples == null || syncSamples.isEmpty()) {
+                return null;
+            }
+            long[] returns = new long[syncSamples.size()];
+            for (int i = 0; i < syncSamples.size(); i++) {
+                returns[i] = syncSamples.get(i);
+            }
+            return returns;
+        }
+
+        public int getTimeScale() {
+            return timeScale;
+        }
+
+        public Date getCreationTime() {
+            return creationTime;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        public float getVolume() {
+            return volume;
+        }
+
+        public ArrayList<Long> getSampleDurations() {
+            return sampleDurations;
+        }
+
+        public boolean isAudio() {
+            return isAudio;
+        }
+
+        public int getTrackId() {
+            return trackId;
+        }
+    }
+
+    private class Mp4Movie {
+        private Matrix matrix = Matrix.ROTATE_0;
+        private HashMap<Integer, Track> tracks = new HashMap<>();
+
+        public Matrix getMatrix() {
+            return matrix;
+        }
+
+        public HashMap<Integer, Track> getTracks() {
+            return tracks;
+        }
+
+        public void addSample(int trackIndex, long offset, MediaCodec.BufferInfo bi) {
+            Track track = tracks.get(trackIndex);
+            track.addSample(offset, bi);
+        }
+
+        public void addTrack(MediaFormat format, boolean isAudio) {
+            if (format != null) {
+                if (isAudio) {
+                    tracks.put(AUDIO_TRACK, new Track(tracks.size(), format, true));
+                } else {
+                    tracks.put(VIDEO_TRACK, new Track(tracks.size(), format, false));
+                }
+            }
+        }
+
+        public void removeTrack(int trackIndex) {
+            tracks.remove(trackIndex);
+        }
+    }
+
+    private class InterleaveChunkMdat implements Box {
+        private boolean first = true;
+        private ContainerBox parent;
+        private ByteBuffer header = ByteBuffer.allocateDirect(16);
+        private long contentSize = 1024 * 1024 * 1024;
+
+        public ContainerBox getParent() {
+            return parent;
+        }
+
+        public void setParent(ContainerBox parent) {
+            this.parent = parent;
+        }
+
+        public long getContentSize() {
+            return contentSize;
+        }
+
+        public void setContentSize(long contentSize) {
+            this.contentSize = contentSize;
+        }
+
+        public String getType() {
+            return "mdat";
+        }
+
+        public long getSize() {
+            return header.limit() + contentSize;
+        }
+
+        public int getHeaderSize() {
+            return header.limit();
+        }
+
+        private boolean isSmallBox(long contentSize) {
+            return (contentSize + header.limit()) < 4294967296L;
+        }
+
+        public void getBox(WritableByteChannel writableByteChannel) {
+            header.rewind();
+            long size = getSize();
+            if (isSmallBox(size)) {
+                IsoTypeWriter.writeUInt32(header, size);
+            } else {
+                IsoTypeWriter.writeUInt32(header, 1);
+            }
+            header.put(IsoFile.fourCCtoBytes("mdat"));
+            if (isSmallBox(size)) {
+                header.put(new byte[8]);
+            } else {
+                IsoTypeWriter.writeUInt64(header, size);
+            }
+            header.rewind();
+
+            try {
+                writableByteChannel.write(header);
+            } catch (IOException e) {
+                mHandler.notifyRecordIOException(e);
+            }
+        }
+
+        @Override
+        public void parse(ReadableByteChannel readableByteChannel, ByteBuffer header, long contentSize, BoxParser
+                boxParser) throws IOException {
+        }
     }
 }

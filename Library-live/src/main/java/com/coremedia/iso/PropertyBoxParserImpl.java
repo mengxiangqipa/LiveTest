@@ -15,8 +15,8 @@
  */
 package com.coremedia.iso;
 
-import com.googlecode.mp4parser.AbstractBox;
 import com.coremedia.iso.boxes.Box;
+import com.googlecode.mp4parser.AbstractBox;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  */
 public class PropertyBoxParserImpl extends AbstractBoxParser {
     Properties mapping;
+    Pattern p = Pattern.compile("(.*)\\((.*?)\\)");
 
     public PropertyBoxParserImpl(String... customProperties) {
         InputStream is = new BufferedInputStream(getClass().getResourceAsStream("/isoparser-default.properties"));
@@ -41,7 +42,8 @@ public class PropertyBoxParserImpl extends AbstractBoxParser {
             mapping = new Properties();
             try {
                 mapping.load(is);
-                Enumeration<URL> enumeration = Thread.currentThread().getContextClassLoader().getResources("isoparser-custom.properties");
+                Enumeration<URL> enumeration = Thread.currentThread().getContextClassLoader().getResources
+                        ("isoparser-custom.properties");
 
                 while (enumeration.hasMoreElements()) {
                     URL url = enumeration.nextElement();
@@ -71,8 +73,6 @@ public class PropertyBoxParserImpl extends AbstractBoxParser {
     public PropertyBoxParserImpl(Properties mapping) {
         this.mapping = mapping;
     }
-
-    Pattern p = Pattern.compile("(.*)\\((.*?)\\)");
 
     @SuppressWarnings("unchecked")
     public Class<? extends Box> getClassForFourCc(String type, byte[] userType, String parent) {
@@ -112,8 +112,6 @@ public class PropertyBoxParserImpl extends AbstractBoxParser {
                 } else {
                     throw new InternalError("No such param: " + param[i]);
                 }
-
-
             }
             Constructor<AbstractBox> constructorObject;
             try {
@@ -133,8 +131,6 @@ public class PropertyBoxParserImpl extends AbstractBoxParser {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-
-
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

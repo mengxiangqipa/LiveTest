@@ -20,7 +20,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 */
 package com.googlecode.mp4parser.h264;
 
-
 /**
  * Simple BTree implementation needed for haffman tables
  *

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
 
 
     <LinearLayout
@@ -15,14 +15,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="开始" />
+            android:text="开始"/>
 
         <Button
             android:id="@+id/swCam"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="摄像头" />
+            android:text="摄像头"/>
 
 
         <Button
@@ -30,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="软编码" />
+            android:text="软编码"/>
 
         <Button
             android:id="@+id/dddd"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onClick"
-            android:text="test" />
+            android:text="test"/>
     </LinearLayout>
 
     <EditText
@@ -46,9 +46,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
-        android:text="rtmp://192.168.0.29:1935/live/test"
         android:padding="10dp"
+        android:text="rtmp://192.168.0.29:1935/live/test"
         android:textColor="#FFFFFF"
-        android:textSize="14dp" />
+        android:textSize="14dp"/>
 
 </RelativeLayout>

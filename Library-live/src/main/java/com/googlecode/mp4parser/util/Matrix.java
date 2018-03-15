@@ -28,7 +28,8 @@ public class Matrix {
         this.ty = ty;
     }
 
-    public static Matrix fromFileOrder(double a, double b, double u, double c, double d, double v, double tx, double ty, double w) {
+    public static Matrix fromFileOrder(double a, double b, double u, double c, double d, double v, double tx, double
+            ty, double w) {
         return new Matrix(a, b, c, d, u, v, w, tx, ty);
     }
 
@@ -130,8 +131,5 @@ public class Matrix {
         IsoTypeWriter.writeFixedPoint1616(byteBuffer, tx);
         IsoTypeWriter.writeFixedPoint1616(byteBuffer, ty);
         IsoTypeWriter.writeFixedPoint0230(byteBuffer, w);
-
     }
-
-
 }

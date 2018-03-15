@@ -35,9 +35,8 @@ import static com.googlecode.mp4parser.util.CastUtils.l2i;
  * contains a sample, its position, and the associated sample description. Defined in ISO/IEC 14496-12.
  */
 public class SampleToChunkBox extends AbstractFullBox {
-    List<Entry> entries = Collections.emptyList();
-
     public static final String TYPE = "stsc";
+    List<Entry> entries = Collections.emptyList();
 
     public SampleToChunkBox() {
         super(TYPE);
