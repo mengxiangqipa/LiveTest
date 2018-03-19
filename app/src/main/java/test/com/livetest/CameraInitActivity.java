@@ -18,6 +18,7 @@ import com.seu.magicfilter.utils.MagicFilterType;
 
 import net.ossrs.yasea.SrsCameraView;
 import net.ossrs.yasea.SrsEncodeHandler;
+import net.ossrs.yasea.SrsPublisher;
 import net.ossrs.yasea.SrsPublisherTest;
 import net.ossrs.yasea.SrsRecordHandler;
 
@@ -27,14 +28,14 @@ import java.net.SocketException;
 /**
  * Created by Sikang on 2017/5/2.
  */
-public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
+public class CameraInitActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
         SrsRecordHandler.SrsRecordListener, View.OnClickListener {
     private static final String TAG = "CameraActivity";
     private Button mPublishBtn;
     private Button mCameraSwitchBtn;
     private Button mEncoderBtn;
     private EditText mRempUrlEt;
-    private SrsPublisherTest mPublisher;
+    private SrsPublisher mPublisher;
     private String rtmpUrl;
 
     @Override
@@ -51,7 +52,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mCameraSwitchBtn.setOnClickListener(this);
         mEncoderBtn.setOnClickListener(this);
 
-        mPublisher = new SrsPublisherTest((SrsCameraView) findViewById(R.id.glsurfaceview_camera));
+        mPublisher = new SrsPublisher((SrsCameraView) findViewById(R.id.glsurfaceview_camera));
 //        SrsCameraView srsCameraView = new SrsCameraView(this);
 //        mPublisher = new SrsPublisherTest(srsCameraView);
         //编码状态回调
@@ -64,7 +65,7 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mPublisher.setPreviewResolution(1920, 1080);
         //推流分辨率
 //        mPublisher.setOutputResolution(270, 480);//比较流畅,画面不是特别清晰
-        mPublisher.setOutputResolution(720, 1280);
+        mPublisher.setOutputResolution(1080, 1920);
 
         //预览分辨率
 //        mPublisher.setPreviewResolution(1280, 720);
@@ -77,9 +78,9 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
 //        mPublisher.setOutputResolution(1080, 1920);//INIT
 
         //传输率
-//        mPublisher.setVideoHDMode();
-        mPublisher.setVideoSmoothMode();
-        mPublisher.setVideoHDMode2();
+        mPublisher.setVideoHDMode();
+//        mPublisher.setVideoSmoothMode();
+//        mPublisher.setVideoHDMode2();
         //开启美颜（其他滤镜效果在MagicFilterType中查看）
         mPublisher.switchCameraFilter(MagicFilterType.NONE);
         //打开摄像头，开始预览（未推流）

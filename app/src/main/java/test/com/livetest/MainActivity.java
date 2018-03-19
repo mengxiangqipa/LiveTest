@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.push_stream_btn:
                 startActivity(new Intent(this, CameraActivity.class));
+//                startActivity(new Intent(this, CameraInitActivity.class));
                 break;
             case R.id.push_stream2_btn:
                 startActivity(new Intent(this, CameraNoDisplayActivity.class));

@@ -294,6 +294,10 @@ public class SrsPublisherTest {
         mEncoder.setScreenOrientation(orientation);
     }
 
+    public void setVideoHDMode2() {
+        mEncoder.setVideoHDMode2();
+    }
+
     public void setVideoHDMode() {
         mEncoder.setVideoHDMode();
     }
