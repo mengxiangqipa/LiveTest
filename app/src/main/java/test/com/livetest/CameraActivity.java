@@ -59,15 +59,21 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
         //rtmp推流状态回调
         mPublisher.setRtmpHandler(new RtmpHandler(this));
+
         //预览分辨率
-        mPublisher.setPreviewResolution(1280, 720);
+        mPublisher.setPreviewResolution(1920, 1080);
         //推流分辨率
-        mPublisher.setOutputResolution(720, 1280);
+        mPublisher.setOutputResolution(1080, 1920);
+
+        //预览分辨率
+//        mPublisher.setPreviewResolution(1280, 720);
+//        //推流分辨率
+//        mPublisher.setOutputResolution(720, 1280);
 
 //        //预览分辨率
-//        mPublisher.setPreviewResolution(1920, 1080);
+//        mPublisher.setPreviewResolution(1920, 1080);//INIT
 //        //推流分辨率
-//        mPublisher.setOutputResolution(1080, 1920);
+//        mPublisher.setOutputResolution(1080, 1920);//INIT
 
         //传输率
         mPublisher.setVideoHDMode();
