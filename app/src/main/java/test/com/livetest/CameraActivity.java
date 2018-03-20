@@ -64,7 +64,9 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
         mPublisher.setPreviewResolution(1920, 1080);
         //推流分辨率
 //        mPublisher.setOutputResolution(270, 480);//比较流畅,画面不是特别清晰
-        mPublisher.setOutputResolution(720, 1280);
+//        mPublisher.setOutputResolution(720, 1280);//搭配200*1024 还可以
+//        mPublisher.setOutputResolution(540, 960);//比较流畅，中庸 mPublishersetVideoSmoothMode,mPublisher.setVideoHDMode()
+        mPublisher.setOutputResolution(540, 960);//mPublishersetVideoSmoothMode
 
         //预览分辨率
 //        mPublisher.setPreviewResolution(1280, 720);
@@ -77,9 +79,14 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
 //        mPublisher.setOutputResolution(1080, 1920);//INIT
 
         //传输率
-//        mPublisher.setVideoHDMode();
-        mPublisher.setVideoSmoothMode();
-        mPublisher.setVideoHDMode2();
+//        mPublisher.setVideoVeryHDMode();
+        mPublisher.setVideoHDMode();
+//        mPublisher.setVideoSmoothMode();
+//        mPublisher.setVideoVerySmoothMode();
+//        mPublisher.setVideoCustomMode(200*1024,"流畅");
+
+
+
         //开启美颜（其他滤镜效果在MagicFilterType中查看）
         mPublisher.switchCameraFilter(MagicFilterType.NONE);
         //打开摄像头，开始预览（未推流）

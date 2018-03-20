@@ -8,6 +8,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
@@ -247,8 +248,8 @@ public class SrsEncoder {
         vPortraitHeight = width;
     }
 
-    public void setVideoHDMode2() {
-        vBitrate = 100 * 1024;  // 2400 kbps
+    public void setVideoVeryHDMode() {
+        vBitrate = 2000 * 1024;  // 2400 kbps
         x264Preset = "fast";
     }
 
@@ -260,6 +261,24 @@ public class SrsEncoder {
     public void setVideoSmoothMode() {
         vBitrate = 500 * 1024;  // 500 kbps
         x264Preset = "superfast";
+    }
+
+    public void setVideoVerySmoothMode() {
+        vBitrate = 200 * 1024;  // 200 kbps
+        x264Preset = "verysuperfast";
+    }
+
+
+    /**
+     * @param vBitrate vBitrate (kbps)取样率 200*1024
+     * @param x264Preset x264Preset  非常流畅
+     */
+    public void setVideoCustomMode(int vBitrate,String x264Preset) {
+        if(vBitrate<1024|| TextUtils.isEmpty(x264Preset)){
+            setVideoSmoothMode();
+        }
+        this.vBitrate = vBitrate;
+        this.x264Preset = x264Preset;
     }
 
     public int getPreviewWidth() {
