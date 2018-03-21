@@ -80,8 +80,8 @@ public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEnco
 
         //传输率
 //        mPublisher.setVideoVeryHDMode();
-        mPublisher.setVideoHDMode();
-//        mPublisher.setVideoSmoothMode();
+//        mPublisher.setVideoHDMode();
+        mPublisher.setVideoSmoothMode();
 //        mPublisher.setVideoVerySmoothMode();
 //        mPublisher.setVideoCustomMode(200*1024,"流畅");
 
