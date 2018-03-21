@@ -38,7 +38,7 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  * Created by Sikang on 2017/5/2.
  */
-public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler
+public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler
         .RtmpListener,
         SrsRecordHandler.SrsRecordListener, View.OnClickListener {
     private static final String TAG = "CameraActivity";
@@ -75,7 +75,7 @@ public class CameraNoDisplayActivity extends Activity implements SrsEncodeHandle
         mCameraSwitchBtn.setOnClickListener(this);
         mEncoderBtn.setOnClickListener(this);
 
-        mPublisher = new SrsPublisherTestNodisplay(new SrsSurfaceNoDisplay(CameraNoDisplayActivity.this));
+        mPublisher = new SrsPublisherTestNodisplay(new SrsSurfaceNoDisplay(CameraTestNoDisplayActivity.this));
 //        SrsCameraView srsCameraView = new SrsCameraView(this);
 //        mPublisher = new SrsPublisherTest(srsCameraView);
         //编码状态回调

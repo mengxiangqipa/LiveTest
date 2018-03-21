@@ -27,7 +27,7 @@ import java.net.SocketException;
 /**
  * Created by Sikang on 2017/5/2.
  */
-public class CameraActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
+public class CameraTestActivity extends Activity implements SrsEncodeHandler.SrsEncodeListener, RtmpHandler.RtmpListener,
         SrsRecordHandler.SrsRecordListener, View.OnClickListener {
     private static final String TAG = "CameraActivity";
     private Button mPublishBtn;

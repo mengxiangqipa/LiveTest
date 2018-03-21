@@ -27,11 +27,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.push_stream_btn:
-                startActivity(new Intent(this, CameraActivity.class));
+                startActivity(new Intent(this, CameraTestActivity.class));
 //                startActivity(new Intent(this, CameraInitActivity.class));
                 break;
             case R.id.push_stream2_btn:
-                startActivity(new Intent(this, CameraNoDisplayActivity.class));
+                startActivity(new Intent(this, CameraTestNoDisplayActivity.class));
                 break;
             case R.id.play_stream_btn:
                 startActivity(new Intent(this, PlayerActivity.class));

@@ -39,7 +39,7 @@
         </activity>
 
         <activity
-            android:name=".CameraActivity"
+            android:name=".CameraTestActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
@@ -47,7 +47,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name=".CameraNoDisplayActivity"
+            android:name=".CameraTestNoDisplayActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
