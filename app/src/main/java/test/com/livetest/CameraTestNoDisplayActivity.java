@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.faucamp.simplertmp.RtmpHandler;
@@ -47,10 +48,11 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
     private Button mEncoderBtn;
     private EditText mRempUrlEt;
     private SrsPublisherTestNodisplay mPublisher;
+    //    private SrsPublisherTest mPublisher;
     private String rtmpUrl;
     private Camera mCamera;
-    private int mPreviewWidth = 1280;
-    private int mPreviewHeight = 720;
+    private int mPreviewWidth = 1920;
+    private int mPreviewHeight = 1080;
     private boolean mIsTorchOn = false;
     private int mPreviewRotation = 90;
     private SurfaceTexture surfaceTexture;
@@ -78,6 +80,7 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
         mPublisher = new SrsPublisherTestNodisplay(new SrsSurfaceNoDisplay(CameraTestNoDisplayActivity.this));
 //        SrsCameraView srsCameraView = new SrsCameraView(this);
 //        mPublisher = new SrsPublisherTest(srsCameraView);
+
         //编码状态回调
         mPublisher.setEncodeHandler(new SrsEncodeHandler(this));
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
@@ -152,9 +155,13 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
                     mEncoderBtn.setText("软编码");
                 }
                 break;
-            case R.id.dddd:
+            case R.id.startCamera:
                 Log.e("yy", "我的");
                 startCamera();
+                break;
+            case R.id.showImageview:
+                ImageView imageView = (ImageView) findViewById(R.id.iv);
+                SrsSurfaceNoDisplay.showBitmap(imageView);
                 break;
         }
     }
@@ -211,7 +218,7 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
         }
 
         Log.e("yy", "startCamera6");
-        callbackBuffer = new byte[1280 * 720];
+        callbackBuffer = new byte[1920 * 1080];
         mCamera.addCallbackBuffer(callbackBuffer);
 //        mCamera.setPreviewCallback(new Camera.PreviewCallback()
 //        {
@@ -224,7 +231,7 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
         mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
-                Log.e("yy", "onPreviewFrame：" + (data == null));
+//                Log.e("yy", "onPreviewFrame：" + (data == null));
                 mCamera.addCallbackBuffer(callbackBuffer);
             }
         });

@@ -33,12 +33,20 @@
             android:text="软编码"/>
 
         <Button
-            android:id="@+id/dddd"
+            android:id="@+id/startCamera"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onClick"
-            android:text="test"/>
+            android:text="startCam"/>
+
+        <Button
+            android:id="@+id/showImageview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:text="预览截图"/>
     </LinearLayout>
 
     <EditText
@@ -47,8 +55,13 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
         android:padding="10dp"
-        android:text="rtmp://192.168.0.29:1935/live/test"
+        android:text="rtmp://192.168.0.31:1935/live/test"
         android:textColor="@android:color/holo_red_dark"
         android:textSize="14dp"/>
 
+    <ImageView
+        android:id="@+id/iv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"/>
 </RelativeLayout>

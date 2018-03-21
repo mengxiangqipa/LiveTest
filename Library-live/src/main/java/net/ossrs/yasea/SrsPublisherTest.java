@@ -60,7 +60,7 @@ public class SrsPublisherTest {
 //                    {
 //                        e.printStackTrace();
 //                    }
-                    Log.e("yy", "onGetRgbaFrame:" + "data:" + (data.length) + " width:" + width + " height:" +
+                    Log.e("onGetRgbaFrame", "onGetRgbaFrame:" + "data:" + (data.length) + " width:" + width + " height:" +
                             height + "  videoFrameCount:" + videoFrameCount + "   mSamplingFps:" + mSamplingFps);
                     calcSamplingFps();
                     if (!sendAudioOnly) {

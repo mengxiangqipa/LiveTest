@@ -59,7 +59,7 @@ public class SrsPublisherTestNodisplay {
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
-                    Log.e("yy", "onGetRgbaFrame:" + "data:" +
+                    Log.e("onGetRgbaFrame", "onGetRgbaFrame:" + "data:" +
                             (data.length) +
                             " width:" + width + " height:" +
                             height + "  videoFrameCount:" + videoFrameCount + "   mSamplingFps:" + mSamplingFps);
