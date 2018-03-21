@@ -131,13 +131,13 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        try
-        {
-            surfaceTexture.updateTexImage();
-        } catch (Exception e)
-        {
-            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp());
-        }
+//        try
+//        {
+//            surfaceTexture.updateTexImage();
+//        } catch (Exception e)
+//        {
+//            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp()+"----"+e.getMessage());
+//        }
 //        test(mSurfaceMatrix);
 //        test(mTransformMatrix);
 //        test(mProjectionMatrix);
@@ -148,7 +148,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         int a = magicFilter.onDrawFrame(mOESTextureId);
         Log.e("onDrawFrame", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer" +
                 "():" +
-                magicFilter.getGLFboBuffer().hasArray());
+                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId);
         if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
             synchronized (writeLock) {

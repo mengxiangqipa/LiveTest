@@ -121,7 +121,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         int a = magicFilter.onDrawFrame(mOESTextureId);
 
         Log.e("onDrawFrame", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer():" +
-                magicFilter.getGLFboBuffer().hasArray());
+                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId);
         if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
             synchronized (writeLock) {
