@@ -108,7 +108,7 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
         mPublisher.startCamera();
         mPublisher.switchCameraFace((mPublisher.getCamraId() + 1) % Camera.getNumberOfCameras());
 
-//        init(this);todo test
+//        init(this);//todo test
     }
 
     @Override
