@@ -315,6 +315,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
             e.printStackTrace();
         }
         mCamera.startPreview();
+
         return true;
     }
 
