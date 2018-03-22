@@ -417,8 +417,10 @@ public class SrsEncoder {
     private byte[] hwRgbaFrame(byte[] data, int width, int height) {
         switch (mVideoColorFormat) {
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar:
+                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420Planar");
                 return RGBAToI420(data, width, height, true, 180);
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar:
+                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420SemiPlanar");
                 return RGBAToNV12(data, width, height, true, 180);
             default:
                 throw new IllegalStateException("Unsupported color format!");

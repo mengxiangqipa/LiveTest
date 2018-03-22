@@ -26,9 +26,12 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * Created by Leo Ma on 2016/2/25.
+ * 测试的-
+ *     @author YobertJomi
+ *     className SrsCameraViewTest
+ *     created at  2018/3/21  17:31
  */
-public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
+public class SrsSurfaceNoDisplay2 extends GLSurfaceView implements GLSurfaceView.Renderer {
     private final Object writeLock = new Object();
     private GPUImageFilter magicFilter;
     private SurfaceTexture surfaceTexture;
@@ -53,11 +56,11 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
     private ConcurrentLinkedQueue<IntBuffer> mGLIntBufferCache = new ConcurrentLinkedQueue<>();
     private PreviewCallback mPrevCb;
 
-    public SrsCameraView(Context context) {
+    public SrsSurfaceNoDisplay2(Context context) {
         this(context, null);
     }
 
-    public SrsCameraView(Context context, AttributeSet attrs) {
+    public SrsSurfaceNoDisplay2(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         setEGLContextClientVersion(2);
@@ -75,7 +78,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         magicFilter.onInputSizeChanged(mPreviewWidth, mPreviewHeight);
 
         mOESTextureId = OpenGLUtils.getExternalOESTextureID();
-        Log.e("yy","onSurfaceCreated:"+mOESTextureId+"  current："+Thread.currentThread());
+        Log.e("yy","onSurfaceCreated:"+mOESTextureId);
         surfaceTexture = new SurfaceTexture(mOESTextureId);
         surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
@@ -115,7 +118,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        surfaceTexture.updateTexImage();
+//        surfaceTexture.updateTexImage();
         surfaceTexture.getTransformMatrix(mSurfaceMatrix);
         Matrix.multiplyMM(mTransformMatrix, 0, mSurfaceMatrix, 0, mProjectionMatrix, 0);
         magicFilter.setTextureTransformMatrix(mTransformMatrix);
@@ -315,6 +318,27 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        try {
+            mCamera.setPreviewTexture(surfaceTexture);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+//        callbackBuffer = new byte[1280 * 720];
+//        mCamera.addCallbackBuffer(callbackBuffer);
+        final IntBuffer mGLFboBuffer = IntBuffer.allocate(1920 * 1080);
+        mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                Log.e("setPreviewCallback", "setPreviewCallback：" + (data == null) + " data.lenth:" + data.length);
+                GLES20.glReadPixels(0, 0, 1920, 1080, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                        mGLFboBuffer);
+
+
+                onDrawFrame(null);
+            }
+        });
         mCamera.startPreview();
 
         return true;

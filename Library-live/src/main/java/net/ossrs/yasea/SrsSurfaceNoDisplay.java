@@ -12,6 +12,7 @@ import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -21,6 +22,7 @@ import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.MagicFilterFactory;
 import com.seu.magicfilter.utils.MagicFilterType;
 import com.seu.magicfilter.utils.OpenGLUtils;
+import com.seu.magicfilter.utils.YuvToRGB;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -88,6 +90,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         magicFilter.onInputSizeChanged(mPreviewWidth, mPreviewHeight);
 
         mOESTextureId = OpenGLUtils.getExternalOESTextureID();
+        Log.e("yy","onSurfaceCreated:"+mOESTextureId);
         surfaceTexture = new SurfaceTexture(mOESTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
 
@@ -131,13 +134,13 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-//        try
-//        {
-//            surfaceTexture.updateTexImage();
-//        } catch (Exception e)
-//        {
-//            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp()+"----"+e.getMessage());
-//        }
+        try
+        {
+            surfaceTexture.updateTexImage();
+        } catch (Exception e)
+        {
+            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp()+"----"+e.getMessage());
+        }
 //        test(mSurfaceMatrix);
 //        test(mTransformMatrix);
 //        test(mProjectionMatrix);
@@ -148,7 +151,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         int a = magicFilter.onDrawFrame(mOESTextureId);
         Log.e("onDrawFrame", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer" +
                 "():" +
-                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId);
+                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId+"  current："+Thread.currentThread());
         if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
             synchronized (writeLock) {
@@ -351,6 +354,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
                 Log.e("setPreviewCallback", "setPreviewCallback：" + (data == null) + " data.lenth:" + data.length);
+                YuvToRGB.YV12ToRGB(data,mPreviewWidth,mPreviewHeight);
                 GLES20.glReadPixels(0, 0, 1920, 1080, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
                         mGLFboBuffer);
 //                while(data!=null&&mGLFboBuffer.hasArray()){
@@ -362,7 +366,11 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
                     runInPreviewFrame(data, camera);
                 }
 
-                onDrawFrame(null);
+//                onDrawFrame(null);
+
+                //TODO 添加直接操作byte[]
+//                if (SrsPublisherTestNodisplay.onPublishing)
+//                SrsPublisherTestNodisplay.getSrsEncoder().onGetRgbaFrame(data, 1080, 1920);
             }
         });
 //        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback()

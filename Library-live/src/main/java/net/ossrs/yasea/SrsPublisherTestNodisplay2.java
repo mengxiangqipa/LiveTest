@@ -19,14 +19,13 @@ import java.io.UnsupportedEncodingException;
  *         className SrsPublisherTest
  *         created at  2017/12/27  9:53
  */
-public class SrsPublisherTestNodisplay {
+public class SrsPublisherTestNodisplay2 {
     private static AudioRecord mic;
     private static AcousticEchoCanceler aec;
     private static AutomaticGainControl agc;
-    byte[] logo_data;
     private byte[] mPcmBuffer = new byte[4096];
     private Thread aworker;
-    private SrsSurfaceNoDisplay srsSurfaceNoDisplay;
+    private SrsSurfaceNoDisplay2 srsSurfaceNoDisplay;
     private boolean sendVideoOnly = false;
     private boolean sendAudioOnly = false;
     private int videoFrameCount;
@@ -34,27 +33,12 @@ public class SrsPublisherTestNodisplay {
     private double mSamplingFps;
     private SrsFlvMuxer mFlvMuxer;
     private SrsMp4Muxer mMp4Muxer;
-    private static SrsEncoder mEncoder;//TODO 本来非静态
-    public static boolean onPublishing=false;//TODO 本来非静态
-    public static SrsEncoder getSrsEncoder(){//TODO 本来非静态
-        return mEncoder;
-    }
+    private SrsEncoder mEncoder;
 
-    public SrsPublisherTestNodisplay(SrsSurfaceNoDisplay view) {
-        try {
-
-            InputStream logo_input_stream = getClass().getResourceAsStream(
-                    "/assets/logo.png");
-
-            logo_data = ReadAssetFileDataToByte(logo_input_stream);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("yy", "write logo file to /sdcard/ failed");
-        }
-
+    public SrsPublisherTestNodisplay2(SrsSurfaceNoDisplay2 view) {
         srsSurfaceNoDisplay = view;
         if (null != srsSurfaceNoDisplay)
-            srsSurfaceNoDisplay.setPreviewCallback(new SrsSurfaceNoDisplay.PreviewCallback() {
+            srsSurfaceNoDisplay.setPreviewCallback(new SrsSurfaceNoDisplay2.PreviewCallback() {
                 @Override
                 public void onGetRgbaFrame(byte[] data, int width, int height) {
                     String a = "我是初始数据";
@@ -78,19 +62,6 @@ public class SrsPublisherTestNodisplay {
                     }
                 }
             });
-    }
-
-    private byte[] ReadAssetFileDataToByte(InputStream in) throws IOException {
-        ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
-        int c = 0;
-
-        while ((c = in.read()) != -1) {
-            bytestream.write(c);
-        }
-
-        byte bytedata[] = bytestream.toByteArray();
-        bytestream.close();
-        return bytedata;
     }
 
     private void calcSamplingFps() {
@@ -216,11 +187,9 @@ public class SrsPublisherTestNodisplay {
             mFlvMuxer.setVideoResolution(mEncoder.getOutputWidth(), mEncoder.getOutputHeight());
             startEncode();
         }
-        onPublishing=true;
     }
 
     public void stopPublish() {
-        onPublishing=false;
         if (mFlvMuxer != null) {
             stopEncode();
             mFlvMuxer.stop();

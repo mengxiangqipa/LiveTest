@@ -20,6 +20,13 @@
         android:text="直播（采集编码、rtmp推流--无预览）"/>
 
     <Button
+        android:id="@+id/push_stream2_btn2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="直播（采集编码、rtmp推流--无预览2）"/>
+
+    <Button
         android:id="@+id/play_stream_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

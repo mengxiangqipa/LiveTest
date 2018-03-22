@@ -192,7 +192,7 @@ public class OpenGLUtils {
         }
         return iShader;
     }
-
+//原来
     public static int getExternalOESTextureID() {
         int[] texture = new int[1];
         GLES20.glGenTextures(1, texture, 0);
@@ -207,6 +207,31 @@ public class OpenGLUtils {
                 GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
         return texture[0];
     }
+
+
+//    public static int getExternalOESTextureID() {
+//        int[] textureHandle = new int[1];
+//        GLES20.glGenTextures(1, textureHandle, 0);
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+////        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+//        return textureHandle[0];
+//    }
+
+//    public static int getExternalOESTextureID() {
+//        int[] textureHandle = new int[1];
+//        GLES20.glGenTextures(1, textureHandle, 0);
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+////        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+//        return textureHandle[0];
+//    }
 
     public static String readShaderFromRawResource(Context context, int resourceId) {
         final InputStream inputStream = context.getResources().openRawResource(resourceId);

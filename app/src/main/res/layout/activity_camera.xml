@@ -7,6 +7,7 @@
         android:id="@+id/glsurfaceview_camera"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:alpha="100"
         android:layout_alignParentTop="true"/>
 
     <LinearLayout
@@ -36,6 +37,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="软编码"/>
+        <Button
+            android:id="@+id/record"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="录制"/>
     </LinearLayout>
 
     <EditText
