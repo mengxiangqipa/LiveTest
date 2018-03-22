@@ -142,9 +142,12 @@ public class CameraTestActivity extends Activity implements SrsEncodeHandler.Srs
             //录制mp4
             case R.id.record:
                 if(recordBtn.getText().toString().equalsIgnoreCase("录制")){
-                    mPublisher.startRecord(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
+                    recordBtn.setText("停止");
+                    mPublisher.startRecord(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()+"/"+
+                    "liveTest"+System.currentTimeMillis()+".mp4");
                 }else{
                     mPublisher.stopRecord();
+                    recordBtn.setText("录制");
                 }
                 break;
         }
@@ -246,7 +249,7 @@ public class CameraTestActivity extends Activity implements SrsEncodeHandler.Srs
 
     @Override
     public void onNetworkWeak() {
-        Toast.makeText(getApplicationContext(), "网络型号弱", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "网络信号弱", Toast.LENGTH_SHORT).show();
     }
 
     @Override
