@@ -35,7 +35,6 @@ public class SrsPublisherTestNodisplay {
     private SrsFlvMuxer mFlvMuxer;
     private SrsMp4Muxer mMp4Muxer;
     private static SrsEncoder mEncoder;//TODO 本来非静态
-    public static boolean onPublishing=false;//TODO 本来非静态
     public static SrsEncoder getSrsEncoder(){//TODO 本来非静态
         return mEncoder;
     }
@@ -70,6 +69,11 @@ public class SrsPublisherTestNodisplay {
                     calcSamplingFps();
                     if (!sendAudioOnly) {
                         try {
+//                            StringBuilder sb=new StringBuilder();
+//                            for (int i = 0; i < data.length; i++) {
+//                                sb.append(data[i]);
+//                            }
+//                            Log.e("onGetRgbaFrame","onGetRgbaFrame111:"+"lenth:"+data.length+"   width:"+width+"   height:"+height+"  ddd"+sb.toString());
                             mEncoder.onGetRgbaFrame(data, width, height);
 //                            mEncoder.onGetRgbaFrame(logo_data, width, height);
                         } catch (Exception e) {
@@ -216,11 +220,9 @@ public class SrsPublisherTestNodisplay {
             mFlvMuxer.setVideoResolution(mEncoder.getOutputWidth(), mEncoder.getOutputHeight());
             startEncode();
         }
-        onPublishing=true;
     }
 
     public void stopPublish() {
-        onPublishing=false;
         if (mFlvMuxer != null) {
             stopEncode();
             mFlvMuxer.stop();

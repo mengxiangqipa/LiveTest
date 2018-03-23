@@ -122,7 +122,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         int a = magicFilter.onDrawFrame(mOESTextureId);
 
         Log.e("onDrawFrame", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer():" +
-                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId+"  current："+Thread.currentThread());
+                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId+"  current："+Thread.currentThread()+"  :"+magicFilter.getGLFboBuffer().array().length);
         if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
             synchronized (writeLock) {
@@ -231,6 +231,11 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
                         mGLPreviewBuffer.asIntBuffer().put(picture.array());
                         Log.e("yy", "enableEncoding:picture.array.lenth:" + (picture.array().length) + "  " +
                                 "mPreviewWidth:" + mPreviewWidth + "  mPreviewHeight:" + mPreviewHeight);
+                        StringBuilder sb=new StringBuilder();
+                        for (int i = 0; i < picture.array().length; i++) {
+                            sb.append(picture.array()[i]);
+                        }
+                        Log.e("enableEncoding","enableEncoding111:"+"lenth:"+picture.array().length+"   "+mGLPreviewBuffer.array().length+"   width:"+mPreviewWidth+"   height:"+mPreviewHeight+"  ddd"+sb.toString());
                         mPrevCb.onGetRgbaFrame(mGLPreviewBuffer.array(), mPreviewWidth, mPreviewHeight);
                     }
                     // Waiting for next frame
@@ -278,7 +283,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         params.setPreviewSize(mPreviewWidth, mPreviewHeight);
         int[] range = adaptFpsRange(SrsEncoder.VFPS, params.getSupportedPreviewFpsRange());
         params.setPreviewFpsRange(range[0], range[1]);
-        params.setPreviewFormat(ImageFormat.NV21);
+        params.setPreviewFormat(ImageFormat.NV16);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
         params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);

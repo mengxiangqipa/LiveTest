@@ -12,7 +12,6 @@ import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
-import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -22,7 +21,6 @@ import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.MagicFilterFactory;
 import com.seu.magicfilter.utils.MagicFilterType;
 import com.seu.magicfilter.utils.OpenGLUtils;
-import com.seu.magicfilter.utils.YuvToRGB;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -90,7 +88,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         magicFilter.onInputSizeChanged(mPreviewWidth, mPreviewHeight);
 
         mOESTextureId = OpenGLUtils.getExternalOESTextureID();
-        Log.e("yy","onSurfaceCreated:"+mOESTextureId);
+        Log.e("yy", "onSurfaceCreated:" + mOESTextureId);
         surfaceTexture = new SurfaceTexture(mOESTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
 
@@ -134,16 +132,17 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        try
-        {
+        try {
             surfaceTexture.updateTexImage();
-        } catch (Exception e)
-        {
-            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp()+"----"+e.getMessage());
+        } catch (Exception e) {
+            Log.e("yy", "updateTexImage：异常：" + surfaceTexture.getTimestamp() + "----" + e.getMessage());
         }
 //        test(mSurfaceMatrix);
 //        test(mTransformMatrix);
 //        test(mProjectionMatrix);
+        Log.e("yy", "mSurfaceMatrix==null：" + mSurfaceMatrix.toString() + " " + mSurfaceMatrix.hashCode());
+        Log.e("yy", "mTransformMatrix==null：" + mTransformMatrix.toString() + " " + mTransformMatrix.hashCode());
+        Log.e("yy", "mProjectionMatrix==null：" + mProjectionMatrix.toString() + " " + mProjectionMatrix.hashCode());
         surfaceTexture.getTransformMatrix(mSurfaceMatrix);
         Matrix.multiplyMM(mTransformMatrix, 0, mSurfaceMatrix, 0, mProjectionMatrix, 0);
         magicFilter.setTextureTransformMatrix(mTransformMatrix);
@@ -151,7 +150,8 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         int a = magicFilter.onDrawFrame(mOESTextureId);
         Log.e("onDrawFrame", "onDrawFrame：返回结果：" + a + "  mIsEncoding:" + mIsEncoding + "  magicFilter.getGLFboBuffer" +
                 "():" +
-                magicFilter.getGLFboBuffer().hasArray()+"   mOESTextureId:"+mOESTextureId+"  current："+Thread.currentThread());
+                magicFilter.getGLFboBuffer().hasArray() + "   mOESTextureId:" + mOESTextureId + "  current：" + Thread
+                .currentThread());
         if (mIsEncoding) {
             mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
             synchronized (writeLock) {
@@ -261,6 +261,14 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
                         mGLPreviewBuffer.asIntBuffer().put(picture.array());
                         Log.e("yy", "enableEncoding:picture.array.lenth:" + (picture.array().length) + "  " +
                                 "mPreviewWidth:" + mPreviewWidth + "  mPreviewHeight:" + mPreviewHeight);
+
+                        StringBuilder sb = new StringBuilder();
+                        for (int i = 0; i < picture.array().length; i++) {
+                            sb.append(picture.array()[i]);
+                        }
+                        Log.e("enableEncoding", "enableEncoding111:" + "lenth:" + picture.array().length + "   " +
+                                mGLPreviewBuffer.array().length + "   width:" + mPreviewWidth + "   height:" +
+                                mPreviewHeight + "  ddd" + sb.toString());
                         mPrevCb.onGetRgbaFrame(mGLPreviewBuffer.array(), mPreviewWidth, mPreviewHeight);
                     }
 
@@ -309,7 +317,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         params.setPreviewSize(mPreviewWidth, mPreviewHeight);
         int[] range = adaptFpsRange(SrsEncoder.VFPS, params.getSupportedPreviewFpsRange());
         params.setPreviewFpsRange(range[0], range[1]);
-        params.setPreviewFormat(ImageFormat.NV21);
+        params.setPreviewFormat(ImageFormat.NV21);//原NV21
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
         params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
@@ -347,30 +355,40 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
             e.printStackTrace();
         }
 
-//        callbackBuffer = new byte[1280 * 720];
-//        mCamera.addCallbackBuffer(callbackBuffer);
+        callbackBuffer = new byte[1920 * 1080];
+        mCamera.addCallbackBuffer(callbackBuffer);
         final IntBuffer mGLFboBuffer = IntBuffer.allocate(1920 * 1080);
         mCamera.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
                 Log.e("setPreviewCallback", "setPreviewCallback：" + (data == null) + " data.lenth:" + data.length);
-                YuvToRGB.YV12ToRGB(data,mPreviewWidth,mPreviewHeight);
-                GLES20.glReadPixels(0, 0, 1920, 1080, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
-                        mGLFboBuffer);
-//                while(data!=null&&mGLFboBuffer.hasArray()){
-//                mGLFboBuffer.put(data.)
-//                }
+//                YuvToRGB.YV12ToRGB(data,mPreviewWidth,mPreviewHeight);
+//                GLES20.glReadPixels(0, 0, 1920, 1080, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+//                        mGLFboBuffer);
+
+//                    mGLFboBuffer.put(new int[callbackBuffer]);
+
 //                mGLIntBufferCache.add(mGLFboBuffer);
 
                 if (null == bitmap) {
-                    runInPreviewFrame(data, camera);
+//                    runInPreviewFrame(data, camera);
                 }
 
 //                onDrawFrame(null);
 
+                if (mIsEncoding) {
+//                    IntBuffer intBuffer =
+//                    mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
+                            mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
+                    synchronized (writeLock) {
+                        writeLock.notifyAll();
+                    }
+                }
+
                 //TODO 添加直接操作byte[]
-//                if (SrsPublisherTestNodisplay.onPublishing)
-//                SrsPublisherTestNodisplay.getSrsEncoder().onGetRgbaFrame(data, 1080, 1920);
+                if (mIsEncoding) {
+//                SrsPublisherTestNodisplay.getSrsEncoder().onGetRgbaFrame(null, mPreviewWidth, mPreviewHeight);
+                }
             }
         });
 //        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback()
@@ -421,7 +439,8 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
         yuvimage.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 100, baos);//
         // 80--JPG图片的质量[0-100],100最高
         rawImage = baos.toByteArray();
-        Log.e("yy", "runInPreviewFrame:" + rawImage.length+"  previewSize.width:"+previewSize.width+"  previewSize.height:"+previewSize.height);
+        Log.e("yy", "runInPreviewFrame:" + rawImage.length + "  previewSize.width:" + previewSize.width + "  " +
+                "previewSize.height:" + previewSize.height);
         //将rawImage转换成bitmap
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.RGB_565;
@@ -502,7 +521,7 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        Log.e("yy", "22onFrameAvailable");
+        Log.e("yy", "22onFrameAvailable:" + Thread.currentThread());
 //        surfaceTexture.updateTexImage();
 //        init(context);
 //        mCamera.addCallbackBuffer(callbackBuffer);

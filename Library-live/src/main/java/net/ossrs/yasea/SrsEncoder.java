@@ -417,7 +417,11 @@ public class SrsEncoder {
     private byte[] hwRgbaFrame(byte[] data, int width, int height) {
         switch (mVideoColorFormat) {
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar:
-                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420Planar");
+//                StringBuilder sb=new StringBuilder();
+//                for (int i = 0; i < data.length; i++) {
+//                    sb.append(data[i]);
+//                }
+//                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420Planar:"+"lenth:"+data.length+"  "+sb.toString());
                 return RGBAToI420(data, width, height, true, 180);
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar:
                 Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420SemiPlanar");
