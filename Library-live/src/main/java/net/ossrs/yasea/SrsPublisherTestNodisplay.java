@@ -1,5 +1,6 @@
 package net.ossrs.yasea;
 
+import android.graphics.Rect;
 import android.media.AudioRecord;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AutomaticGainControl;
@@ -75,7 +76,6 @@ public class SrsPublisherTestNodisplay {
 //                            }
 //                            Log.e("onGetRgbaFrame","onGetRgbaFrame111:"+"lenth:"+data.length+"   width:"+width+"   height:"+height+"  ddd"+sb.toString());
                             mEncoder.onGetRgbaFrame(data, width, height);
-//                            mEncoder.onGetRgbaFrame(logo_data, width, height);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

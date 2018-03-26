@@ -371,23 +371,23 @@ public class SrsSurfaceNoDisplay implements SurfaceTexture.OnFrameAvailableListe
 //                mGLIntBufferCache.add(mGLFboBuffer);
 
                 if (null == bitmap) {
-//                    runInPreviewFrame(data, camera);
+                    runInPreviewFrame(data, camera);
                 }
 
 //                onDrawFrame(null);
 
-                if (mIsEncoding) {
-//                    IntBuffer intBuffer =
-//                    mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
-                            mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
-                    synchronized (writeLock) {
-                        writeLock.notifyAll();
-                    }
-                }
+//                if (mIsEncoding) {
+////                    IntBuffer intBuffer =
+////                    mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
+//                            mGLIntBufferCache.add(magicFilter.getGLFboBuffer());
+//                    synchronized (writeLock) {
+//                        writeLock.notifyAll();
+//                    }
+//                }
 
                 //TODO 添加直接操作byte[]
                 if (mIsEncoding) {
-//                SrsPublisherTestNodisplay.getSrsEncoder().onGetRgbaFrame(null, mPreviewWidth, mPreviewHeight);
+//                SrsPublisherTestNodisplay.getSrsEncoder().onGetRgbaFrame(data, mPreviewWidth, mPreviewHeight);
                 }
             }
         });

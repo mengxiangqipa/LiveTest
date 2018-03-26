@@ -1,6 +1,7 @@
 package net.ossrs.yasea;
 
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
@@ -268,13 +269,12 @@ public class SrsEncoder {
         x264Preset = "verysuperfast";
     }
 
-
     /**
-     * @param vBitrate vBitrate (kbps)取样率 200*1024
+     * @param vBitrate   vBitrate (kbps)取样率 200*1024
      * @param x264Preset x264Preset  非常流畅
      */
-    public void setVideoCustomMode(int vBitrate,String x264Preset) {
-        if(vBitrate<1024|| TextUtils.isEmpty(x264Preset)){
+    public void setVideoCustomMode(int vBitrate, String x264Preset) {
+        if (vBitrate < 1024 || TextUtils.isEmpty(x264Preset)) {
             setVideoSmoothMode();
         }
         this.vBitrate = vBitrate;
@@ -417,14 +417,18 @@ public class SrsEncoder {
     private byte[] hwRgbaFrame(byte[] data, int width, int height) {
         switch (mVideoColorFormat) {
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar:
-//                StringBuilder sb=new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 //                for (int i = 0; i < data.length; i++) {
 //                    sb.append(data[i]);
 //                }
-//                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420Planar:"+"lenth:"+data.length+"  "+sb.toString());
+                Log.e("hwRgbaFrame", "hwRgbaFrame:" + "COLOR_FormatYUV420Planar:" + "lenth:" + data.length + "  " +
+                        sb.toString());
                 return RGBAToI420(data, width, height, true, 180);
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar:
-                Log.e("yy","hwRgbaFrame:"+"COLOR_FormatYUV420SemiPlanar");
+                Log.e("hwRgbaFrame", "hwRgbaFrame:" + "COLOR_FormatYUV420SemiPlanar");
+                return RGBAToNV12(data, width, height, true, 180);
+            case MediaCodecInfo.CodecCapabilities.COLOR_Format24bitARGB1887:
+                Log.e("hwRgbaFrame", "hwRgbaFrame:" + "COLOR_Format24bitARGB1887");
                 return RGBAToNV12(data, width, height, true, 180);
             default:
                 throw new IllegalStateException("Unsupported color format!");
@@ -518,6 +522,8 @@ public class SrsEncoder {
 
         Log.i(TAG, String.format("vencoder %s choose color format 0x%x(%d)", vmci.getName(), matchedColorFormat,
                 matchedColorFormat));
+        //TODO test 我是测试的
+//        matchedColorFormat=MediaCodecInfo.CodecCapabilities.COLOR_Format24bitARGB1887;
         return matchedColorFormat;
     }
 
