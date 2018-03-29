@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Library-live/Library-live.iml" filepath="$PROJECT_DIR$/Library-live/Library-live.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Library-vitamio/Library-vitamio.iml" filepath="$PROJECT_DIR$/Library-vitamio/Library-vitamio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Library-Live/Library-live.iml" filepath="$PROJECT_DIR$/Library-Live/Library-live.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Library-Vitamio/Library-vitamio.iml" filepath="$PROJECT_DIR$/Library-Vitamio/Library-vitamio.iml" />
       <module fileurl="file://$PROJECT_DIR$/LiveTest.iml" filepath="$PROJECT_DIR$/LiveTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>

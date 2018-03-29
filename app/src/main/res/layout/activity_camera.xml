@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
         android:padding="10dp"
-        android:text="rtmp://192.168.0.32:1935/live/test"
+        android:text="rtmp://192.168.0.40:1935/live/test"
         android:textColor="@android:color/holo_red_dark"
         android:textSize="14dp"/>
 

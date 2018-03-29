@@ -8,8 +8,8 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/Library-live" />
-            <option value="$PROJECT_DIR$/Library-vitamio" />
+            <option value="$PROJECT_DIR$/Library-Live" />
+            <option value="$PROJECT_DIR$/Library-Vitamio" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>
