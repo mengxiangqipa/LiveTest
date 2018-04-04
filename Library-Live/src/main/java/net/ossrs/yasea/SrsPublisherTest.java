@@ -294,9 +294,9 @@ public class SrsPublisherTest {
         mEncoder.setScreenOrientation(orientation);
     }
 
-    public void setVideoVeryHDMode() {
-        mEncoder.setVideoVeryHDMode();
-    }
+//    public void setVideoVeryHDMode() {
+//        mEncoder.setVideoVeryHDMode();
+//    }
 
     public void setVideoHDMode() {
         mEncoder.setVideoHDMode();
@@ -306,13 +306,13 @@ public class SrsPublisherTest {
         mEncoder.setVideoSmoothMode();
     }
 
-    public void setVideoVerySmoothMode() {
-        mEncoder.setVideoVerySmoothMode();
-    }
+//    public void setVideoVerySmoothMode() {
+//        mEncoder.setVideoVerySmoothMode();
+//    }
 
-    public void setVideoCustomMode(int vBitrate, String x264Preset) {
-        mEncoder.setVideoCustomMode(vBitrate, x264Preset);
-    }
+//    public void setVideoCustomMode(int vBitrate, String x264Preset) {
+//        mEncoder.setVideoCustomMode(vBitrate, x264Preset);
+//    }
 
     public void setSendVideoOnly(boolean flag) {
         if (mic != null) {
