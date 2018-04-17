@@ -29,8 +29,10 @@ public class SrsEncoder {
     public static int vPortraitHeight = 1280;
     public static int vLandscapeWidth = 1280;
     public static int vLandscapeHeight = 720;
-    public static int vOutWidth = 720;   // Note: the stride of resolution must be set as 16x for hard encoding with some chip like MTK
-    public static int vOutHeight = 1280;  // Since Y component is quadruple size as U and V component, the stride must be set as 32x
+    public static int vOutWidth = 720;   // Note: the stride of resolution must be set as 16x for hard encoding with
+    // some chip like MTK
+    public static int vOutHeight = 1280;  // Since Y component is quadruple size as U and V component, the stride
+    // must be set as 32x
     public static int vBitrate = 1200 * 1024;  // 1200 kbps
     public static final int VFPS = 24;
     public static final int VGOP = 48;
@@ -281,7 +283,7 @@ public class SrsEncoder {
             vOutWidth = vLandscapeWidth;
             vOutHeight = vLandscapeHeight;
         }
-        
+
         // Note: the stride of resolution must be set as 16x for hard encoding with some chip like MTK
         // Since Y component is quadruple size as U and V component, the stride must be set as 32x
         if (!useSoftEncoder && (vOutWidth % 32 != 0 || vOutHeight % 32 != 0)) {
@@ -373,6 +375,11 @@ public class SrsEncoder {
                 swRgbaFrame(data, width, height, pts);
             } else {
                 byte[] processedData = hwRgbaFrame(data, width, height);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < processedData.length; i++) {
+                    sb.append(processedData[i]);
+                }
+                Log.e("onGetProcessedData","onGetProcessedData:"+"lenth:"+data.length+"   width:"+width+" height:"+height+"  ddd::"+sb.toString());
                 if (processedData != null) {
                     onProcessedYuvFrame(processedData, pts);
                 } else {
@@ -407,10 +414,10 @@ public class SrsEncoder {
 
     public AudioRecord chooseAudioRecord() {
         AudioRecord mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
-            AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+                AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
         if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
             mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
             if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
                 mic = null;
             } else {
@@ -425,7 +432,7 @@ public class SrsEncoder {
 
     private int getPcmBufferSize() {
         int pcmBufSize = AudioRecord.getMinBufferSize(ASAMPLERATE, AudioFormat.CHANNEL_IN_STEREO,
-            AudioFormat.ENCODING_PCM_16BIT) + 8191;
+                AudioFormat.ENCODING_PCM_16BIT) + 8191;
         return pcmBufSize - (pcmBufSize % 8192);
     }
 
@@ -486,19 +493,29 @@ public class SrsEncoder {
             Log.i(TAG, String.format("vencoder %s support profile %d, level %d", vmci.getName(), pl.profile, pl.level));
         }
 
-        Log.i(TAG, String.format("vencoder %s choose color format 0x%x(%d)", vmci.getName(), matchedColorFormat, matchedColorFormat));
+        Log.i(TAG, String.format("vencoder %s choose color format 0x%x(%d)", vmci.getName(), matchedColorFormat,
+                matchedColorFormat));
         return matchedColorFormat;
     }
 
     private native void setEncoderResolution(int outWidth, int outHeight);
+
     private native void setEncoderFps(int fps);
+
     private native void setEncoderGop(int gop);
+
     private native void setEncoderBitrate(int bitrate);
+
     private native void setEncoderPreset(String preset);
+
     private native byte[] RGBAToI420(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
+
     private native byte[] RGBAToNV12(byte[] rgbaFrame, int width, int height, boolean flip, int rotate);
+
     private native int RGBASoftEncode(byte[] rgbaFrame, int width, int height, boolean flip, int rotate, long pts);
+
     private native boolean openSoftEncoder();
+
     private native void closeSoftEncoder();
 
     static {

@@ -75,11 +75,11 @@ public class CameraTestActivity extends Activity implements SrsEncodeHandler.Srs
         mPublisher.setPreviewResolution(1280, 720);
 //        //推流分辨率
 ////        mPublisher.setOutputResolution(270, 480);//比较流畅,画面不是特别清晰
-////        mPublisher.setOutputResolution(720, 1280);//搭配200*1024 还可以
+        mPublisher.setOutputResolution(720, 1280);//搭配200*1024 还可以
 ////        mPublisher.setOutputResolution(540, 960);//比较流畅，中庸 mPublishersetVideoSmoothMode,mPublisher.setVideoHDMode()
 //        mPublisher.setOutputResolution(540, 960);//mPublishersetVideoSmoothMode
 //        mPublisher.setOutputResolution(368, 640);
-        mPublisher.setOutputResolution(184, 320);
+//        mPublisher.setOutputResolution(184, 320);//这个可以
 //        mPublisher.setOutputResolution(138, 240);
 //        mPublisher.setOutputResolution(92, 160);
         //传输率

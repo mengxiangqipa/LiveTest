@@ -9,6 +9,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.seu.magicfilter.base.gpuimage.GPUImageFilter;
 import com.seu.magicfilter.utils.MagicFilterFactory;
@@ -227,7 +228,11 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
                 while (!Thread.interrupted()) {
                     while (!mGLIntBufferCache.isEmpty()) {
                         IntBuffer picture = mGLIntBufferCache.poll();
+                        Log.e("yy", "enableEncoding:picture==null:" + (picture == null));
                         mGLPreviewBuffer.asIntBuffer().put(picture.array());
+                        Log.e("yy", "enableEncoding:picture.array.lenth:" + (picture.array().length) + "  " +
+                               "mGLPreviewBuffer.array():"+(mGLPreviewBuffer.array().length)+ "  mPreviewWidth:" + mPreviewWidth + "  mPreviewHeight:" + mPreviewHeight);
+
                         mPrevCb.onGetRgbaFrame(mGLPreviewBuffer.array(), mPreviewWidth, mPreviewHeight);
                     }
                     // Waiting for next frame
