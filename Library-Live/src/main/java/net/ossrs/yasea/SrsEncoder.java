@@ -8,9 +8,16 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
+import android.os.Environment;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -365,6 +372,74 @@ public class SrsEncoder {
         }
     }
 
+    /**
+     * 　　* 保存文件
+     * 　　* @param toSaveString
+     * 　　* @param filePath
+     */
+    public static void saveFile(String toSaveString, String filePath) {
+        try {
+            File saveFile = new File(filePath);
+            if (!saveFile.exists()) {
+                File dir = new File(saveFile.getParent());
+                dir.mkdirs();
+                saveFile.createNewFile();
+            }
+            FileOutputStream outStream = new FileOutputStream(saveFile);
+            outStream.write(toSaveString.getBytes());
+            outStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    boolean saved=false;
+
+    /**
+     * 　　* 读取文件内容
+     * 　　* @param filePath
+     * 　　* @return 文件内容
+     */
+    public static String readFile(String filePath) {
+        Log.e("test","readFile"+1);
+        String str = "";
+        try {
+            File readFile = new File(filePath);
+            Log.e("test","readFile"+2);
+            if (!readFile.exists()) {
+                Log.e("test","readFile"+3);
+                return null;
+            }
+            Log.e("test","readFile"+4);
+            FileInputStream inStream = new FileInputStream(readFile);
+            Log.e("test","readFile"+5);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            Log.e("test","readFile"+6);
+            byte[] buffer = new byte[1024];
+            int length = -1;
+            while ((length = inStream.read(buffer)) != -1) {
+                stream.write(buffer, 0, length);
+            }
+            Log.e("test","readFile"+7);
+            str = stream.toString();
+            Log.e("test","readFile"+8);
+            stream.close();
+            inStream.close();
+            Log.e("test","readFile"+9);
+            return str;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.e("test","readFile"+10+"  "+e.getMessage());
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("test","readFile"+11+"  "+e.getMessage());
+            return null;
+        }
+    }
+
+
     public void onGetRgbaFrame(byte[] data, int width, int height) {
         // Check video frame cache number to judge the networking situation.
         // Just cache GOP / FPS seconds data according to latency.
@@ -379,7 +454,44 @@ public class SrsEncoder {
                 for (int i = 0; i < processedData.length; i++) {
                     sb.append(processedData[i]);
                 }
-                Log.e("onGetProcessedData","onGetProcessedData:"+"lenth:"+data.length+"   width:"+width+" height:"+height+"  ddd::"+sb.toString());
+                String a= null;
+                try {
+                    a = new String(processedData,"UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                Log.e("onGetProcessedData", "onGetProcessedData:" + "lenth:" + processedData.length + "   width:" +
+                        width + " height:" + height + "  ddd::" + a);
+//                Log.e("onGetProcessedData", "onGetProcessedData:" + "lenth:" + processedData.length + "   width:" +
+//                        width + " height:" + height + "  ddd::" + sb.toString());
+                try {
+                    Log.e("onGetProcessedData",  ""+a.getBytes("UTF-8").length);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+//                String a=new String(processedData);
+//                Log.e("test", "初始化读取--:" + a.getBytes().length);
+//                if(!saved){
+//                    saved=true;
+//                    saveFile( a, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()+"/a.txt");
+//                }else{
+//                    new Thread() {
+//                        @Override
+//                        public void run() {
+//                            super.run();
+//                            try {
+//                               String  read = readFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//                                        .getAbsolutePath() + "/a.txt");
+//                                Log.e("test", "初始化读取:" + read);
+//                                Log.e("test", "初始化读取:" + read.getBytes().length);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                                Log.e("test", e.getMessage());
+//                            }
+//                        }
+//                    }.start();
+//                }
                 if (processedData != null) {
                     onProcessedYuvFrame(processedData, pts);
                 } else {
@@ -396,7 +508,73 @@ public class SrsEncoder {
             networkWeakTriggered = true;
         }
     }
+    public void onGetProcessedData(byte[] yvdata, int width, int height) {
+        AtomicInteger videoFrameCacheNumber = flvMuxer.getVideoFrameCacheNumber();
+        if (videoFrameCacheNumber != null && videoFrameCacheNumber.get() < VGOP) {
+            long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+            if (useSoftEncoder) {
+                swRgbaFrame(yvdata, width, height, pts);
+            } else {
+//                byte[] processedData = hwRgbaFrame(data, width, height);
+                byte[] processedData =yvdata;
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < processedData.length; i++) {
+                    sb.append(processedData[i]);
+                }
+                String a= null;
+                try {
+                    a = new String(processedData,"UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                Log.e("onGetProcessedData", "onGetProcessedData:" + "lenth:" + processedData.length + "   width:" +
+                        width + " height:" + height + "  ddd::" + a);
+//                Log.e("onGetProcessedData", "onGetProcessedData:" + "lenth:" + processedData.length + "   width:" +
+//                        width + " height:" + height + "  ddd::" + sb.toString());
+                try {
+                    Log.e("onGetProcessedData",  ""+a.getBytes("UTF-8").length);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
+//                String a=new String(processedData);
+//                Log.e("test", "初始化读取--:" + a.getBytes().length);
+//                if(!saved){
+//                    saved=true;
+//                    saveFile( a, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()+"/a.txt");
+//                }else{
+//                    new Thread() {
+//                        @Override
+//                        public void run() {
+//                            super.run();
+//                            try {
+//                               String  read = readFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//                                        .getAbsolutePath() + "/a.txt");
+//                                Log.e("test", "初始化读取:" + read);
+//                                Log.e("test", "初始化读取:" + read.getBytes().length);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                                Log.e("test", e.getMessage());
+//                            }
+//                        }
+//                    }.start();
+//                }
+                if (processedData != null) {
+                    onProcessedYuvFrame(processedData, pts);
+                } else {
+                    mHandler.notifyEncodeIllegalArgumentException(new IllegalArgumentException("libyuv failure"));
+                }
+            }
+
+            if (networkWeakTriggered) {
+                networkWeakTriggered = false;
+                mHandler.notifyNetworkResume();
+            }
+        } else {
+            mHandler.notifyNetworkWeak();
+            networkWeakTriggered = true;
+        }
+    }
     private byte[] hwRgbaFrame(byte[] data, int width, int height) {
         switch (mVideoColorFormat) {
             case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar:

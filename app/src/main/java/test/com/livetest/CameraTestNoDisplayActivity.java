@@ -29,6 +29,7 @@ import net.ossrs.yasea.SrsEncoder;
 import net.ossrs.yasea.SrsPublisherTestNodisplay;
 import net.ossrs.yasea.SrsRecordHandler;
 import net.ossrs.yasea.SrsSurfaceNoDisplay;
+import net.ossrs.yasea.SwapUtil;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -51,8 +52,10 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
     //    private SrsPublisherTest mPublisher;
     private String rtmpUrl;
     private Camera mCamera;
-    private int mPreviewWidth = 1920;
-    private int mPreviewHeight = 1080;
+//    private int mPreviewWidth = 1920;
+//    private int mPreviewHeight = 1080;
+    private int mPreviewWidth = 1280;
+    private int mPreviewHeight = 720;
     private boolean mIsTorchOn = false;
     private int mPreviewRotation = 90;
     private SurfaceTexture surfaceTexture;
@@ -92,15 +95,20 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
 //        //推流分辨率
 //        mPublisher.setOutputResolution(480, 800);
 
-//        //预览分辨率
-//        mPublisher.setPreviewResolution(1280, 720);
-//        //推流分辨率
-//        mPublisher.setOutputResolution(720, 1280);
-
         //预览分辨率
-        mPublisher.setPreviewResolution(1920, 1080);
+        mPublisher.setPreviewResolution(1280, 720);
         //推流分辨率
-        mPublisher.setOutputResolution(1080, 1920);
+        mPublisher.setOutputResolution(720, 1280);
+
+//        //预览分辨率 //todo 用来测试后视镜
+//        mPublisher.setPreviewResolution(720, 1280);
+//        //推流分辨率
+//        mPublisher.setOutputResolution(1280, 720);
+
+//        //预览分辨率
+//        mPublisher.setPreviewResolution(1920, 1080);
+//        //推流分辨率
+//        mPublisher.setOutputResolution(1080, 1920);
 
         //传输率
         mPublisher.setVideoHDMode();
@@ -143,6 +151,12 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
                 break;
             //切换摄像头
             case R.id.swCam:
+                try {
+                    Log.e("yy","当前摄像头id："+mPublisher.getCamraId());
+                    Log.e("yy","摄像头总数："+Camera.getNumberOfCameras());
+                } catch (Exception e) {
+                    Log.e("yy","摄像头总数："+e.getMessage());
+                }
                 mPublisher.switchCameraFace((mPublisher.getCamraId() + 1) % Camera.getNumberOfCameras());
                 break;
             //切换编码方式
@@ -219,22 +233,25 @@ public class CameraTestNoDisplayActivity extends Activity implements SrsEncodeHa
 
         Log.e("yy", "startCamera6");
         callbackBuffer = new byte[1920 * 1080];
-        mCamera.addCallbackBuffer(callbackBuffer);
-//        mCamera.setPreviewCallback(new Camera.PreviewCallback()
-//        {
-//            @Override
-//            public void onPreviewFrame(byte[] data, Camera camera)
-//            {
-//                Log.e("yy", "setPreviewCallback：" + (data == null));
-//            }
-//        });
-        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+//        mCamera.addCallbackBuffer(callbackBuffer);
+        mCamera.setPreviewCallback(new Camera.PreviewCallback()
+        {
             @Override
-            public void onPreviewFrame(byte[] data, Camera camera) {
-//                Log.e("yy", "onPreviewFrame：" + (data == null));
-                mCamera.addCallbackBuffer(callbackBuffer);
+            public void onPreviewFrame(byte[] data, Camera camera)
+            {
+                Log.e("yy", "setPreviewCallback：" + (data == null)+"  "+data.length);
+                byte[] i420bytes=new byte[data.length];
+                SwapUtil.getInstance().swapYV12toI420(data,i420bytes,1280,720);
+                SrsPublisherTestNodisplay.test(i420bytes,1280,720);
             }
         });
+//        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+//            @Override
+//            public void onPreviewFrame(byte[] data, Camera camera) {
+//                Log.e("yy", "onPreviewFrame：" + (data == null));
+//                mCamera.addCallbackBuffer(callbackBuffer);
+//            }
+//        });
         Log.e("yy", "startCamera7");
         mCamera.startPreview();
         Log.e("yy", "startCamera8");

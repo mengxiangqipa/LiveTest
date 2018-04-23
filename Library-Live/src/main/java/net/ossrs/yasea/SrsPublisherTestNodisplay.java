@@ -1,6 +1,5 @@
 package net.ossrs.yasea;
 
-import android.graphics.Rect;
 import android.media.AudioRecord;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AutomaticGainControl;
@@ -17,8 +16,8 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * @author YobertJomi
- *         className SrsPublisherTest
- *         created at  2017/12/27  9:53
+ * className SrsPublisherTest
+ * created at  2017/12/27  9:53
  */
 public class SrsPublisherTestNodisplay {
     private static AudioRecord mic;
@@ -30,14 +29,25 @@ public class SrsPublisherTestNodisplay {
     private SrsSurfaceNoDisplay srsSurfaceNoDisplay;
     private boolean sendVideoOnly = false;
     private boolean sendAudioOnly = false;
-    private int videoFrameCount;
-    private long lastTimeMillis;
-    private double mSamplingFps;
+    private static int videoFrameCount;//todo 非静态
+    private static long lastTimeMillis;//todo 非静态
+    private  static double mSamplingFps;//todo 非静态
     private SrsFlvMuxer mFlvMuxer;
     private SrsMp4Muxer mMp4Muxer;
     private static SrsEncoder mEncoder;//TODO 本来非静态
-    public static SrsEncoder getSrsEncoder(){//TODO 本来非静态
+
+    public static SrsEncoder getSrsEncoder() {//TODO 本来非静态
         return mEncoder;
+    }
+
+    public static void test(byte[] data, int width, int height) {
+        calcSamplingFps();
+        try {
+//            mEncoder.onGetRgbaFrame(data, width, height);
+            mEncoder.onGetProcessedData(data, width, height);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public SrsPublisherTestNodisplay(SrsSurfaceNoDisplay view) {
@@ -74,7 +84,8 @@ public class SrsPublisherTestNodisplay {
 //                            for (int i = 0; i < data.length; i++) {
 //                                sb.append(data[i]);
 //                            }
-//                            Log.e("onGetRgbaFrame","onGetRgbaFrame111:"+"lenth:"+data.length+"   width:"+width+"   height:"+height+"  ddd"+sb.toString());
+//                            Log.e("onGetRgbaFrame","onGetRgbaFrame111:"+"lenth:"+data.length+"   width:"+width+"
+// height:"+height+"  ddd"+sb.toString());
                             mEncoder.onGetRgbaFrame(data, width, height);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -97,7 +108,7 @@ public class SrsPublisherTestNodisplay {
         return bytedata;
     }
 
-    private void calcSamplingFps() {
+    private static void calcSamplingFps() {
         // Calculate sampling FPS
         if (videoFrameCount == 0) {
             lastTimeMillis = System.nanoTime() / 1000000;
